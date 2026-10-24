@@ -16,6 +16,11 @@ create index if not exists records_user_updated on public.records (user_id, upda
 
 alter table public.records enable row level security;
 
+-- Signed-in people may use the table (row-level security below limits them to their own rows). Needed when the
+-- project doesn't expose new tables automatically; signed-out visitors get nothing.
+grant select, insert, update, delete on public.records to authenticated;
+revoke all on public.records from anon;
+
 drop policy if exists "own rows: read"   on public.records;
 drop policy if exists "own rows: insert" on public.records;
 drop policy if exists "own rows: update" on public.records;
