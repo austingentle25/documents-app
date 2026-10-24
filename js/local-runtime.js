@@ -11,7 +11,7 @@
 (function(){
 'use strict';
 const CFG=window.DOCUMENTS_CONFIG||{}, CLOUD=!!(CFG.supabaseUrl && CFG.supabaseAnonKey);
-const SB_JS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+const SB_JS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
 const ANON_DB='documents-app', LS='documents-app:';
 const mem=new Map();            // full doc path -> data object
 const times=new Map();          // path -> ms of the last change (kept after deletes, so older changes can't revive it)
