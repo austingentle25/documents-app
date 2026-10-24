@@ -44,9 +44,26 @@ Signed in to a paywalled site? The bookmark reads the article from your own brow
 4. **Copy all** puts every open note on the clipboard as one numbered prompt. Each has a breadcrumb (mode › document › tab › section › panel › control), a CSS selector and a markup excerpt. Paste it into Claude Code in this repo.
 5. **Mark sent** moves the batch to Sent so the next batch starts empty. Sent notes can be reopened or copied again.
 
+## Sign-in and sync (Supabase, free tier)
+
+With `js/config.js` filled in, people sign in with email and password and their documents sync between devices (Mac, iPhone, any browser). Each person sees only their own documents. Without it, the app keeps documents on the device.
+
+How it works: every change is saved in the browser first (fast, works offline), then sent to a `records` table in Supabase. Other open devices get it within a second or two, and every device catches up when you return to the page. If two devices change the same thing, the newer change wins. The first account to sign in on a browser takes along the documents already saved there.
+
+One-time setup:
+1. Create a free project at supabase.com (any name, region US East).
+2. **SQL Editor → New query**: paste `supabase/schema.sql` and **Run**.
+3. **Authentication → URL Configuration**: set *Site URL* to the app's address (e.g. `https://austingentle25.github.io/documents-app/`) and add the same under *Redirect URLs*.
+4. Optional: **Authentication → Sign In / Providers → Email**: turn off *Confirm email* to skip the confirmation email when creating an account.
+5. **Project Settings → API**: copy the *Project URL* and the *anon public* key into `js/config.js`. (Never the `service_role` key.)
+
+Free tier limits: 500 MB of data, 50,000 monthly users. Projects pause after a week with no activity; opening the app wakes it, or restore it from the Supabase dashboard.
+
+**Account button** (bottom left, shows Synced / Syncing… / Offline): sync now, back up, restore, sign out. Signing out removes that account's copy from the browser.
+
 ## Your data
 
-- Stored in this browser only; not synced between Mac and iPhone.
+- Without sign-in: stored in this browser only; not synced between Mac and iPhone.
 - **Data → Download a backup** saves a `.json` of everything. The button shows a red dot when it's been more than 7 days. Safari can clear storage for sites you haven't opened in a while, so back up weekly. Adding the site to your Home Screen (iPhone) or Dock (Mac) makes Safari keep it.
 - **Data → Restore** loads a backup. It also accepts the `documents-backup.json` from the old claude.ai version's nightly backup.
 

@@ -234,6 +234,7 @@ function init(){
   .fbk-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#0b57d0;color:#fff;font-size:11px;display:grid;place-items:center}
   body.reading .fbk-btn,body.full-doc .fbk-btn,body.zoom-mode .fbk-btn{opacity:.35}
   body.reading .fbk-btn:hover,body.full-doc .fbk-btn:hover,body.zoom-mode .fbk-btn:hover{opacity:1}
+  .lr-dock .fbk-btn,body.reading .lr-dock .fbk-btn{opacity:1}
   .fbk-panel{position:fixed;z-index:2147483000;left:16px;bottom:calc(56px + env(safe-area-inset-bottom,0px));width:min(380px,calc(100vw - 32px));max-height:min(70vh,620px);display:flex;flex-direction:column;background:#fff;border:1px solid #dadce0;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.2);font:14px/1.45 Roboto,system-ui,-apple-system,sans-serif;color:#1f1f1f}
   .fbk-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #eee}
   .fbk-count{color:#5f6368;font-size:12px}.fbk-x{margin-left:auto;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:#5f6368}
@@ -267,7 +268,7 @@ function init(){
   /* Grab any text selection before the click clears it, so "Selected text" can use it. */
   btn.addEventListener('pointerdown',()=>{ pendingSel=selectionCapture(); });
   btn.onclick=()=>{ if(panel) closePanel(); else openPanel(false); };
-  document.body.appendChild(btn); badge();
+  (document.querySelector('.lr-dock')||document.body).appendChild(btn); badge();
   addEventListener('keydown',e=>{
     if(e.ctrlKey && e.altKey && e.code==='KeyF'){ e.preventDefault(); e.stopImmediatePropagation(); picking?null:startPick(); return; }
     if(e.key==='Escape' && panel && !picking){ closePanel(); }
