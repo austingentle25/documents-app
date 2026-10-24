@@ -89,10 +89,10 @@ body:has(.docapp) .chat-fab{z-index:45}body:has(.docapp) .gpanel.chat-panel{z-in
 /*QNOTE*/.qn-fab{position:fixed;z-index:14;right:22px;bottom:calc(72px + env(safe-area-inset-bottom,0px));width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--page);color:var(--accent);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.15)}
 .qn-fab:hover{background:var(--pill)}.qn-fab .ms{font-size:20px}
 /* Labeled, so the two right-hand buttons say what they do (icons alone were easy to mix up). */
-body .q-fab,body .qn-fab{width:auto;height:34px;padding:0 12px 0 9px;border-radius:17px;display:flex;align-items:center;gap:6px}
+body .q-fab,body .qn-fab{width:124px;height:34px;padding:0 12px 0 10px;justify-content:flex-start;border-radius:17px;display:flex;align-items:center;gap:6px}
 body .q-fab[hidden],body .qn-fab[hidden]{display:none}
 .fab-lbl{font:500 13px/1 var(--ui);white-space:nowrap}
-@media (max-width:700px){.fab-lbl{display:none}body .q-fab,body .qn-fab{padding:0 7px}}
+@media (max-width:700px){.fab-lbl{display:none}body .q-fab,body .qn-fab{width:34px;padding:0;justify-content:center}}
 body.qn-on .q-fab{bottom:calc(116px + env(safe-area-inset-bottom,0px))}body.noting .qn-fab{bottom:calc(var(--note-h,0px) + 68px)}body.noting.qn-on .q-fab{bottom:calc(var(--note-h,0px) + 112px)}
 .qn-box{position:fixed;z-index:47;right:66px;bottom:calc(60px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100vw - 90px));background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:10px}
 .qn-box textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:15px/1.45 var(--ui,Roboto,Arial,sans-serif);resize:vertical;background:transparent;color:inherit}
@@ -239,6 +239,8 @@ body.at-home #sidebar,body.at-home #sideToggle,body.at-home #scrim,body.at-home 
 .home-card .ms{grid-area:i;color:var(--doc-icon);font-size:24px}.home-card .hc-t{grid-area:t;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .home-card .hc-m{grid-area:m;font-size:12px;color:var(--ink-2)}.home-card .hc-s{grid-area:s;font-size:13px;color:var(--ink-2);margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .home-card.wide{width:100%}
+.home-az{margin-left:auto;display:flex;align-items:center;gap:4px;border:0;background:none;color:var(--ink-2);font:500 13px var(--ui);cursor:pointer;padding:6px 8px;border-radius:8px}.home-az:hover{background:var(--pill-hover)}.home-az .ms{font-size:18px}
+#folderSortBtn[aria-pressed="true"]{color:var(--accent)}
 .home-bar{display:flex;align-items:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}.home-count{color:var(--ink-2);font-size:13px}
 .home-seg{display:inline-flex;background:var(--pill);border-radius:20px;padding:3px}.home-seg button{display:flex;align-items:center;gap:5px;border:0;background:none;border-radius:17px;padding:6px 12px;font:500 13px var(--ui);color:var(--ink-2);cursor:pointer}.home-seg button .ms{font-size:18px}
 .home-seg button[aria-selected="true"]{background:var(--page);color:var(--ink);box-shadow:0 1px 2px rgba(60,64,67,.2)}
@@ -558,7 +560,7 @@ body.reading.night .readreturn{background:#9c7428;color:#fbf3e2}
 .readprog{position:sticky;top:-16px;z-index:4;height:4px;margin:-16px -16px 12px;background:rgba(0,0,0,.06)}
 body.reading .readprog{top:-34vh;margin-top:-34vh}
 .readprog>div{height:100%;width:0;background:#c9952e;transition:width .25s ease;pointer-events:none}
-body.reading .readprog{cursor:pointer;touch-action:none}body.reading .readprog::before{content:'';position:absolute;left:0;right:0;top:-6px;height:16px}body.reading .readprog:hover{height:7px}
+body.reading .readprog{cursor:pointer;touch-action:none}body.reading .readprog::before{content:'';position:absolute;left:0;right:0;top:-6px;height:16px}body.reading .readprog:hover{box-shadow:0 3px 0 rgba(0,0,0,.06)}body.reading .readprog:hover>div{box-shadow:0 3px 0 #c9952e}
 .readprog-pct{position:absolute;right:12px;top:8px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.85);color:#5c4a22;font:600 12px var(--ui);font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 body.reading.night .readprog-pct{background:rgba(38,36,32,.9);color:#d9c39a}
 @media (prefers-reduced-motion:reduce){.readprog>div{transition:none}}
@@ -820,7 +822,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
 <aside class="sidebar" id="sidebar" aria-label="Your documents">
   <div class="side-head">
     <button class="side-title side-home" id="homeBtn" title="Home: recent documents" type="button"><span class="ms">home</span>Documents</button>
-    <span class="side-btns"><button class="tb" id="importBtn" title="Import PDFs (or drop them here)" aria-label="Import PDFs"><span class="ms">upload_file</span></button><button class="tb" id="newFolderBtn" title="New folder"><span class="ms">create_new_folder</span></button><button class="btn-new" id="newDocBtn" title="New document"><span class="ms">add</span>New</button></span>
+    <span class="side-btns"><button class="tb" id="importBtn" title="Import PDFs (or drop them here)" aria-label="Import PDFs"><span class="ms">upload_file</span></button><button class="tb" id="folderSortBtn" aria-pressed="true" title="Folders sorted A–Z"><span class="ms">sort_by_alpha</span></button><button class="tb" id="newFolderBtn" title="New folder"><span class="ms">create_new_folder</span></button><button class="btn-new" id="newDocBtn" title="New document"><span class="ms">add</span>New</button></span>
   </div>
   <div class="side-search"><span class="ms">search</span><input id="docSearch" type="search" placeholder="Search documents" aria-label="Search documents"></div>
   <ul class="doc-list" id="docList"></ul>
@@ -845,7 +847,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
 <input type="file" id="fileInput" accept="image/*" hidden>
 <button class="full-exit" id="fullExit" title="Leave full screen (Esc)" aria-label="Leave full screen"><span class="ms">close_fullscreen</span><span>Exit full screen</span></button>
 <div class="notes-bar" id="notesBar" role="toolbar" aria-label="Notes mode"><span class="nb-name" id="nbName"></span><button id="nbExit" title="Leave notes mode" aria-label="Leave notes mode"><span class="ms">close_fullscreen</span></button></div>
-<button class="q-fab" id="qFab" title="Listening queue" aria-label="Listening queue" aria-expanded="false" aria-controls="qPanel"><span class="ms">queue_music</span><span class="fab-lbl">Listening queue</span><span class="q-badge" hidden></span></button>
+<button class="q-fab" id="qFab" title="Audio queue: tabs saved for listening" aria-label="Audio queue" aria-expanded="false" aria-controls="qPanel"><span class="ms">queue_music</span><span class="fab-lbl">Audio queue</span><span class="q-badge" hidden></span></button>
 <div class="gpanel q-panel" id="qPanel" hidden role="dialog" aria-label="Listening queue"><div class="gpanel-head"><span class="ms">queue_music</span><h3>Listening queue</h3><button class="tb" id="qClose" title="Close"><span class="ms">close</span></button></div><div class="q-list"></div></div>
 <button class="qn-fab" id="qnFab" hidden title="Quick note" aria-label="Quick note" aria-expanded="false" aria-controls="qnBox"><span class="ms">edit_square</span><span class="fab-lbl">Quick note</span></button><div class="qn-box" id="qnBox" hidden role="dialog" aria-label="Quick note"><textarea id="qnText" rows="6" placeholder="Write it down…"></textarea><div class="qn-foot"><span class="qn-st" id="qnSt"></span><button class="btn" id="qnSave">Save <span class="k">⌘↵</span></button></div></div><button class="chat-fab" id="chatFab" title="Ask Claude" aria-label="Ask Claude" aria-expanded="false" aria-controls="chatPanel"><span class="ms">forum</span><span class="chat-dot" hidden></span></button>
 <div class="gpanel chat-panel" id="chatPanel" hidden role="dialog" aria-label="Ask Claude">
@@ -2382,8 +2384,13 @@ function setFolderOpen(id, open){ folderOpen[id]=open; try{ localStorage.setItem
 /* "Not in a folder" shows only when a document is outside every folder (and while dragging one, so it can be dropped there). */
 const LOOSE_ONLY=true;
 function isOpen(id){ return FOLDERS_CLOSED ? folderOpen[id]===true : folderOpen[id]!==false; }
+/* Folders sort A–Z by default; the sort button switches to the order they were made or arranged in. */
+let folderAZ=(()=>{ try{ return localStorage.getItem('folderSort')!=='custom'; }catch(e){ return true; } })();
+function folderCmp(a,b){ return folderAZ ? String(a.name||'').localeCompare(String(b.name||''),undefined,{numeric:true,sensitivity:'base'}) : (a.order||0)-(b.order||0); }
+function sortFolders(){ folders.sort(folderCmp); const b=document.getElementById('folderSortBtn'); if(b){ b.setAttribute('aria-pressed',String(folderAZ)); b.title=folderAZ?'Folders sorted A–Z (click for your own order)':'Folders in your order (click to sort A–Z)'; } }
+function toggleFolderSort(){ folderAZ=!folderAZ; try{ localStorage.setItem('folderSort',folderAZ?'az':'custom'); }catch(e){} sortFolders(); renderList(); if(homeEl && homeEl.render) homeEl.render(); }
 function subscribeFolders(){
-  db.collection('folders').orderBy('order').onSnapshot(snap=>{ folders=snap.docs.map(s=>({id:s.id, ...s.data()})); renderList(); if(homeEl && homeEl.render) homeEl.render(); }, ()=>{});
+  db.collection('folders').orderBy('order').onSnapshot(snap=>{ folders=snap.docs.map(s=>({id:s.id, ...s.data()})); sortFolders(); renderList(); if(homeEl && homeEl.render) homeEl.render(); }, ()=>{});
 }
 async function createFolder(name, parent){
   name=(name||'').trim().slice(0,60); newFolderOpen=false;
@@ -2669,7 +2676,7 @@ function showHome(){
     +'<div data-cont></div>'
     +'<div class="home-bar"><div class="home-seg" role="tablist" aria-label="View">'
     +[['folders','folder','Folders'],['recent','grid_view','Recent'],['list','view_list','List']].map(([v,ic,l])=>'<button role="tab" data-v="'+v+'"><span class="ms">'+ic+'</span>'+l+'</button>').join('')
-    +'</div><span class="home-count"></span></div><div data-body></div></div>';
+    +'</div><span class="home-count"></span><button class="home-az" data-az title="Sort folders A–Z or in your order"><span class="ms">sort_by_alpha</span><span></span></button></div><div data-body></div></div>';
   const fName=id=>{ const f=folders.find(x=>x.id===id); return f?f.name:''; };
   const fPath=id=>{ const out=[]; let f=folders.find(x=>x.id===id); for(let k=0;f&&k<8;k++){ out.unshift(f.name); f=folders.find(x=>x.id===f.parent); } return out.join(' › '); };
   const icon=d=>d.kind==='upload'?'picture_as_pdf':'description';
@@ -2691,7 +2698,7 @@ function showHome(){
   const matches=(d,q)=>!q || (d.title||'').toLowerCase().includes(q) || (d.snippet||'').toLowerCase().includes(q) || fPath(d.folder).toLowerCase().includes(q);
   /* Folders: each folder is a card listing its documents; subfolders nest inside; loose documents come last. */
   const folderBox=(f,docs,q,depth)=>{
-    const kids=folders.filter(x=>(x.parent||null)===f.id).sort((a,b)=>(a.order||0)-(b.order||0));
+    const kids=folders.filter(x=>(x.parent||null)===f.id).sort(folderCmp);
     const own=docs.filter(d=>d.folder===f.id && matches(d,q));
     const nameHit=q && f.name.toLowerCase().includes(q);
     const shown=nameHit?docs.filter(d=>d.folder===f.id):own;
@@ -2712,13 +2719,14 @@ function showHome(){
   const render=()=>{
     const q=(inp.value||'').trim().toLowerCase();
     homeEl.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.v===homeView)));
+    const az=homeEl.querySelector('[data-az]'); az.hidden=homeView!=='folders'; az.lastChild.textContent=folderAZ?'A–Z':'Your order';
     body.innerHTML=''; body.className='home-body home-'+homeView;
     const docs=docsList.slice();
     const hits=docs.filter(d=>matches(d,q));
     count.textContent=q?(hits.length+' match'+(hits.length===1?'':'es')):(docs.length+' document'+(docs.length===1?'':'s')+(folders.length?' in '+folders.length+' folder'+(folders.length===1?'':'s'):''));
     if(homeView==='folders'){
       const grid=document.createElement('div'); grid.className='hf-grid';
-      folders.filter(f=>!f.parent || !folders.some(x=>x.id===f.parent)).sort((a,b)=>(a.order||0)-(b.order||0)).forEach(f=>{ const b=folderBox(f,docs,q,0); if(b) grid.appendChild(b); });
+      folders.filter(f=>!f.parent || !folders.some(x=>x.id===f.parent)).sort(folderCmp).forEach(f=>{ const b=folderBox(f,docs,q,0); if(b) grid.appendChild(b); });
       const loose=docs.filter(d=>(!d.folder || !folders.some(f=>f.id===d.folder)) && matches(d,q));
       if(loose.length){ const box=document.createElement('div'); box.className='hf';
         box.innerHTML='<div class="hf-h"><span class="ms">draft</span><span class="hf-n">Not in a folder</span><span class="hf-c">'+loose.length+'</span></div><div class="hf-list"></div>';
@@ -2742,6 +2750,7 @@ function showHome(){
     }
     if(!body.textContent.trim()) body.innerHTML='<p class="home-sub">'+(q?'Nothing matches “'+esc(inp.value.trim())+'”.':'No documents yet. Start one, or import PDFs.')+'</p>';
   };
+  homeEl.querySelector('[data-az]').onclick=toggleFolderSort;
   homeEl.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{ homeView=b.dataset.v; try{ localStorage.setItem('homeView',homeView); }catch(e){} render(); });
   inp.addEventListener('input',render);
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const f=body.querySelector('.hf-doc,.home-card,tbody tr'); if(f) f.click(); } });
@@ -2753,6 +2762,7 @@ function showHome(){
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   setTimeout(()=>{ if(homeEl && matchMedia('(hover:hover)').matches) inp.focus(); },50);
 }
+$('#folderSortBtn').addEventListener('click',toggleFolderSort);
 $('#homeBtn').addEventListener('click',()=>{ if(dirty) save(false); showHome(); });
 
 /* ---------- sidebar toggle ---------- */
@@ -6687,6 +6697,6 @@ addEventListener('beforeunload', ()=>{ if(dirty) stash(); });
 })();
 </script>
 
-<script src="js/feedback.js?v=3"></script>
+<script src="js/feedback.js?v=4"></script>
 </body>
 </html>

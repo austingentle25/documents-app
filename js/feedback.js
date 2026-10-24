@@ -159,6 +159,59 @@ async function copy(text){
   document.body.appendChild(t); t.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(e){} t.remove(); return ok;
 }
 
+/* ---------- GitHub: send a batch as one issue; notes turn Resolved when the issue closes (e.g. a merged PR that says
+   "Fixes #12"). Only on a device where a GitHub token is saved, so only the owner can do it. ---------- */
+const GH_KEY='documents-app:github';
+function gh(){ try{ return JSON.parse(localStorage.getItem(GH_KEY)||'null'); }catch(e){ return null; } }
+function guessRepo(){ const m=/^([^.]+)\.github\.io$/.exec(location.hostname); const seg=location.pathname.split('/').filter(Boolean)[0]; return m&&seg?m[1]+'/'+seg:''; }
+async function ghApi(path, opts, cfg){
+  cfg=cfg||gh(); if(!cfg) throw new Error('GitHub isn’t connected.');
+  const r=await fetch('https://api.github.com/repos/'+cfg.repo+path,Object.assign({},opts,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+cfg.token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}}));
+  if(!r.ok){ const e=new Error('GitHub said '+r.status+(r.status===401?' (token not accepted)':r.status===403||r.status===404?' (token can’t reach this repo’s issues)':'')); e.status=r.status; throw e; }
+  return r.status===204?null:r.json();
+}
+async function sendToGitHub(list){
+  const cfg=gh(); const day=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  await ghApi('/labels',{method:'POST',body:JSON.stringify({name:'feedback',color:'1a73e8',description:'From the Documents app Feedback panel'})}).catch(()=>{});
+  const issue=await ghApi('/issues',{method:'POST',body:JSON.stringify({
+    title:'Feedback: '+list.length+' note'+(list.length===1?'':'s')+' ('+day+')',
+    body:promptText(list)+'\n---\nSent from the Documents app Feedback panel. Close this issue (or merge a PR that says “Fixes #this”) to mark these notes resolved.',
+    labels:['feedback']})},cfg);
+  const t=Date.now(); list.forEach(x=>{ x.sent=t; x.issue=issue.number; x.url=issue.html_url; }); persist();
+  return issue;
+}
+/* Ask GitHub which sent batches are closed now. */
+let checking=false;
+async function refreshResolved(){
+  if(checking || !gh()) return; checking=true;
+  try{
+    const nums=[...new Set(items.filter(x=>x.issue && !x.resolved).map(x=>x.issue))];
+    let changed=false;
+    for(const n of nums){ try{ const i=await ghApi('/issues/'+n); if(i.state==='closed'){ const t=Date.parse(i.closed_at)||Date.now(); items.forEach(x=>{ if(x.issue===n && !x.resolved){ x.resolved=t; changed=true; } }); } }catch(e){} }
+    if(changed){ persist(); if(panel && !panel.dataset.view) render(false); else if(panel) showSent(); }
+  }finally{ checking=false; }
+}
+function connectGitHub(){
+  const cfg=gh()||{repo:guessRepo(),token:''};
+  panel.dataset.view='gh';
+  panel.querySelector('.fbk-body').innerHTML='<p class="fbk-empty"><b>Send feedback straight to GitHub</b> (just for you). Each send becomes one issue in your repo; when the issue closes, for example by merging a pull request that says “Fixes #N”, those notes move to Resolved.</p>'
+    +'<p class="fbk-empty">Make a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>: only this repository, permission <b>Issues: Read and write</b>, nothing else. It’s kept on this device only.</p>'
+    +'<label class="fbk-lbl">Repository<input data-repo spellcheck="false" placeholder="owner/repo"></label><label class="fbk-lbl">Token<input data-tok type="password" autocomplete="off" spellcheck="false" placeholder="'+(cfg.token?'Saved. Paste a new one to replace it':'github_pat_…')+'"></label><p class="fbk-empty" data-msg></p>';
+  panel.querySelector('[data-repo]').value=cfg.repo;
+  panel.querySelector('.fbk-foot').innerHTML='<button data-back>Back</button>'+(cfg.token?'<button data-off>Disconnect</button>':'')+'<button class="pri" data-save>Save and test</button>';
+  const msg=panel.querySelector('[data-msg]');
+  panel.querySelector('[data-back]').onclick=()=>{ delete panel.dataset.view; render(false); };
+  const off=panel.querySelector('[data-off]'); if(off) off.onclick=()=>{ try{ localStorage.removeItem(GH_KEY); }catch(e){} delete panel.dataset.view; render(false); };
+  panel.querySelector('[data-save]').onclick=async()=>{
+    const repo=panel.querySelector('[data-repo]').value.trim().replace(/^https:\/\/github\.com\//,'').replace(/\/$/,''), token=panel.querySelector('[data-tok]').value.trim()||cfg.token;
+    if(!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token){ msg.textContent='Enter the repository (owner/repo) and a token.'; return; }
+    msg.textContent='Checking…';
+    try{ await ghApi('/issues?per_page=1',{},{repo,token}); }catch(e){ msg.textContent=e.message; return; }
+    try{ localStorage.setItem(GH_KEY,JSON.stringify({repo,token})); }catch(e){ msg.textContent='This browser blocked saving it.'; return; }
+    delete panel.dataset.view; render(false); flash('GitHub connected. Use “Send to GitHub”.');
+  };
+}
+
 /* ---------- panel ---------- */
 const KINDS=['Fix','Change','Idea'];
 function closePanel(){ if(panel){ panel.remove(); panel=null; } }
@@ -166,14 +219,15 @@ function openPanel(withDraft){
   closePanel();
   panel=document.createElement('div'); panel.className='fbk-ui fbk-panel'; panel.setAttribute('role','dialog'); panel.setAttribute('aria-label','Feedback');
   panel.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); closePanel(); } });
-  document.body.appendChild(panel); render(withDraft);
+  document.body.appendChild(panel); render(withDraft); refreshResolved();
 }
 function render(withDraft){
   if(!panel) return;
-  const open=items.filter(x=>!x.sent), sent=items.filter(x=>x.sent);
+  if(panel) delete panel.dataset.view;
+  const open=items.filter(x=>!x.sent), sent=items.filter(x=>x.sent && !x.resolved), done=items.filter(x=>x.resolved), linked=!!gh();
   const draft=withDraft && lastPicked;
   panel.innerHTML=
-    '<div class="fbk-head"><b>Feedback</b><span class="fbk-count">'+open.length+' open</span><button class="fbk-x" data-close title="Close (Esc)" aria-label="Close">×</button></div>'
+    '<div class="fbk-head"><b>Feedback</b><span class="fbk-count">'+open.length+' open</span><button class="fbk-gh" data-gh title="'+(linked?'GitHub connected: '+esc(gh().repo):'Connect GitHub to send feedback as issues')+'">'+(linked?'GitHub ✓':'GitHub')+'</button><button class="fbk-x" data-close title="Close (Esc)" aria-label="Close">×</button></div>'
    +'<div class="fbk-body">'
    +(draft
       ? '<div class="fbk-draft"><div class="fbk-crumb">'+esc(lastPicked.crumb)+'</div>'
@@ -187,8 +241,10 @@ function render(withDraft){
         +'<div class="fbk-line"><span class="fbk-kind">'+esc(it.kind)+'</span><span class="fbk-note" contenteditable="true" data-edit spellcheck="true">'+esc(it.note)+'</span><button class="fbk-del" data-del title="Delete" aria-label="Delete">×</button></div></li>').join('')+'</ol>'
       : (draft?'':'<p class="fbk-empty">No notes yet. Point at a button, panel or paragraph and say what should change. Collect as many as you like, then copy them all as one prompt.</p>'))
    +'</div>'
-   +'<div class="fbk-foot"><button class="pri" data-copy '+(open.length?'':'disabled')+'>Copy all ('+open.length+')</button><button data-sent '+(open.length?'':'disabled')+' title="Move these to Sent so the next batch starts empty">Mark sent</button>'
-   +(sent.length?'<button data-showsent>Sent ('+sent.length+')</button>':'')+'</div>';
+   +'<div class="fbk-foot">'+(linked
+       ? '<button class="pri" data-gh-send '+(open.length?'':'disabled')+' title="File these notes as one GitHub issue">Send to GitHub ('+open.length+')</button><button data-copy '+(open.length?'':'disabled')+'>Copy all</button>'
+       : '<button class="pri" data-copy '+(open.length?'':'disabled')+'>Copy all ('+open.length+')</button><button data-sent '+(open.length?'':'disabled')+' title="Move these to Sent so the next batch starts empty">Mark sent</button>')
+   +((sent.length||done.length)?'<button data-showsent>'+(sent.length?'Sent ('+sent.length+')':'')+(sent.length&&done.length?' · ':'')+(done.length?'Resolved ('+done.length+')':'')+'</button>':'')+'</div>';
   panel.querySelector('[data-close]').onclick=closePanel;
   const q=s=>panel.querySelector(s);
   if(draft){
@@ -211,15 +267,27 @@ function render(withDraft){
   const cp=q('[data-copy]'); if(cp) cp.onclick=async()=>{ const ok=await copy(promptText(open)); flash(ok?'Copied '+open.length+' note'+(open.length===1?'':'s')+' as one prompt.':'Couldn’t copy. Try again.'); };
   const ms=q('[data-sent]'); if(ms) ms.onclick=()=>{ const t=Date.now(); open.forEach(x=>{ x.sent=t; }); persist(); render(false); flash('Moved to Sent.'); };
   const ss=q('[data-showsent]'); if(ss) ss.onclick=()=>showSent();
+  q('[data-gh]').onclick=connectGitHub;
+  const gs=q('[data-gh-send]'); if(gs) gs.onclick=async()=>{ gs.disabled=true; gs.textContent='Sending…';
+    try{ const i=await sendToGitHub(open); render(false); flash('Sent as issue #'+i.number+'.'); }catch(e){ flash(e.message); render(false); } };
 }
 function showSent(){
-  const sent=items.filter(x=>x.sent).sort((a,b)=>b.sent-a.sent);
-  panel.querySelector('.fbk-body').innerHTML='<p class="fbk-empty">Sent notes, newest first.</p><ol class="fbk-list">'+sent.map(it=>'<li data-id="'+it.id+'"><div class="fbk-crumb">'+esc(it.crumb||'General')+' · sent '+new Date(it.sent).toLocaleDateString()+'</div><div class="fbk-line"><span class="fbk-kind">'+esc(it.kind)+'</span><span class="fbk-note">'+esc(it.note)+'</span><button class="fbk-del" data-reopen title="Reopen">↺</button></div></li>').join('')+'</ol>';
-  panel.querySelector('.fbk-foot').innerHTML='<button data-back>Back</button><button data-copysent>Copy sent</button><button data-clear>Clear sent</button>';
-  panel.querySelectorAll('[data-reopen]').forEach(b=>b.onclick=()=>{ const it=items.find(x=>x.id===b.closest('li').dataset.id); if(it){ delete it.sent; persist(); showSent(); } });
+  panel.dataset.view='sent';
+  const sent=items.filter(x=>x.sent && !x.resolved).sort((a,b)=>b.sent-a.sent), done=items.filter(x=>x.resolved).sort((a,b)=>b.resolved-a.resolved);
+  const li=(it,act)=>'<li data-id="'+it.id+'"><div class="fbk-crumb">'+esc(it.crumb||'General')+'</div><div class="fbk-line"><span class="fbk-kind">'+esc(it.kind)+'</span><span class="fbk-note">'+esc(it.note)+'</span>'+act+'</div></li>';
+  const tag=it=>it.issue?'<a href="'+esc(it.url)+'" target="_blank" rel="noopener">#'+it.issue+'</a>':'copied';
+  const groups=list=>{ const by=new Map(); list.forEach(it=>{ const k=it.issue?'#'+it.issue:new Date(it.sent).toLocaleDateString(); if(!by.has(k)) by.set(k,[]); by.get(k).push(it); }); return by; };
+  let html='';
+  if(sent.length){ html+='<h4 class="fbk-h">Sent, waiting for a fix</h4>'; groups(sent).forEach(list=>{ html+='<div class="fbk-grp">'+tag(list[0])+' · '+new Date(list[0].sent).toLocaleDateString()+'</div><ol class="fbk-list">'+list.map(it=>li(it,(it.issue?'':'<button class="fbk-del" data-res title="Mark resolved">✓</button>')+'<button class="fbk-del" data-reopen title="Reopen">↺</button>')).join('')+'</ol>'; }); }
+  if(done.length){ html+='<h4 class="fbk-h">Resolved</h4><ol class="fbk-list fbk-done">'+done.map(it=>li(it,'<span class="fbk-when">'+(it.issue?tag(it)+' · ':'')+new Date(it.resolved).toLocaleDateString()+'</span>')).join('')+'</ol>'; }
+  if(!html) html='<p class="fbk-empty">Nothing sent yet.</p>';
+  panel.querySelector('.fbk-body').innerHTML=html;
+  panel.querySelector('.fbk-foot').innerHTML='<button data-back>Back</button>'+(sent.length?'<button data-copysent>Copy waiting</button>':'')+(done.length?'<button data-clear>Clear resolved</button>':'');
+  panel.querySelectorAll('[data-reopen]').forEach(b=>b.onclick=()=>{ const it=items.find(x=>x.id===b.closest('li').dataset.id); if(it){ delete it.sent; delete it.issue; delete it.url; persist(); showSent(); } });
+  panel.querySelectorAll('[data-res]').forEach(b=>b.onclick=()=>{ const it=items.find(x=>x.id===b.closest('li').dataset.id); if(it){ it.resolved=Date.now(); persist(); showSent(); } });
   panel.querySelector('[data-back]').onclick=()=>render(false);
-  panel.querySelector('[data-copysent]').onclick=async()=>{ const ok=await copy(promptText(sent)); flash(ok?'Copied.':'Couldn’t copy.'); };
-  panel.querySelector('[data-clear]').onclick=()=>{ if(!confirm('Delete all sent notes?')) return; items=items.filter(x=>!x.sent); persist(); render(false); };
+  const cs=panel.querySelector('[data-copysent]'); if(cs) cs.onclick=async()=>{ const ok=await copy(promptText(sent)); flash(ok?'Copied.':'Couldn’t copy.'); };
+  const cl=panel.querySelector('[data-clear]'); if(cl) cl.onclick=()=>{ if(!confirm('Delete all resolved notes?')) return; items=items.filter(x=>!x.resolved); persist(); showSent(); };
 }
 function flash(msg){ const t=document.createElement('div'); t.className='fbk-ui fbk-toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
 
@@ -257,7 +325,11 @@ function init(){
   .fbk-kind{font-size:11px;font-weight:500;background:#f1f3f4;border-radius:4px;padding:1px 6px;margin-top:2px;flex:none}
   .fbk-note{flex:1;outline:none;border-radius:4px;padding:0 2px}.fbk-note[contenteditable="true"]:focus{background:#f8fafd;box-shadow:0 0 0 1px #a8c7fa}
   .fbk-del{border:0;background:none;color:#80868b;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px}.fbk-del:hover{color:#b3261e}
-  .fbk-empty{color:#5f6368;font-size:13px;margin:4px 0 8px}
+  .fbk-empty{color:#5f6368;font-size:13px;margin:4px 0 8px}.fbk-empty a,.fbk-grp a,.fbk-when a{color:#0b57d0}
+  .fbk-gh{margin-left:auto;border:1px solid #dadce0;background:#fff;border-radius:12px;padding:2px 9px;font:500 12px Roboto,system-ui,sans-serif;color:#444746;cursor:pointer}.fbk-gh+.fbk-x{margin-left:6px}
+  .fbk-h{margin:10px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#5f6368}.fbk-grp{font-size:12px;color:#5f6368;margin:8px 0 0}
+  .fbk-done .fbk-note{color:#5f6368}.fbk-when{font-size:11px;color:#80868b;white-space:nowrap}
+  .fbk-lbl{display:block;font-size:12px;color:#444746;margin:8px 0}.fbk-lbl input{display:block;width:100%;box-sizing:border-box;margin-top:4px;height:34px;border:1px solid #c7c7c7;border-radius:8px;padding:0 10px;font:inherit}
   .fbk-hover{position:fixed;z-index:2147483001;pointer-events:none;border:2px solid #0b57d0;background:rgba(11,87,208,.08);border-radius:6px;display:none}
   .fbk-tip{position:fixed;z-index:2147483002;top:12px;left:50%;transform:translateX(-50%);background:#1f1f1f;color:#fff;padding:8px 14px;border-radius:10px;font:13px/1.4 Roboto,system-ui,sans-serif;pointer-events:none;max-width:90vw}
   .fbk-layer{position:fixed;inset:0;z-index:2147483000;cursor:crosshair;outline:none;background:transparent}
