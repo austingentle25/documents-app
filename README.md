@@ -57,7 +57,7 @@ One-time setup:
 4. Optional: **Authentication → Sign In / Providers → Email**: turn off *Confirm email* to skip the confirmation email when creating an account.
 5. **Project Settings → API**: copy the *Project URL* and the *anon public* key into `js/config.js`. (Never the `service_role` key.)
 
-Free tier limits: 500 MB of data, 50,000 monthly users. Projects pause after a week with no activity; opening the app wakes it, or restore it from the Supabase dashboard.
+Free tier limits: 500 MB of data, 50,000 monthly users. Free projects pause after about a week with no activity (regular use keeps it active); a paused project is restored from the Supabase dashboard. While paused, the app keeps working on each device and syncs once it's back.
 
 **Account button** (bottom left, shows Synced / Syncing… / Offline): sync now, back up, restore, sign out. Signing out removes that account's copy from the browser.
 
