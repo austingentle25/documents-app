@@ -468,16 +468,17 @@ function dataUi(){
     if(mode==='cloud'){
       pop.innerHTML='<h4>Your account</h4><p>Signed in as <b></b>. Your documents sync to your account and appear on every device where you sign in.'
         +(outbox.size?' '+outbox.size+' change'+(outbox.size===1?' is':'s are')+' waiting to sync.':'')+'</p>'
-        +'<button data-sync>⟳ Sync now</button><button data-x>⬇︎ Download a backup (.json)</button><button data-i>⬆︎ Restore from a backup…</button><button data-out>Sign out</button>';
+        +'<button data-sync>⟳ Sync now</button>'+'<button data-claude>✦ '+(window.documentsClaude&&documentsClaude.connected()?'Claude: connected':'Connect Claude (your API key)')+'</button>'+'<button data-x>⬇︎ Download a backup (.json)</button><button data-i>⬆︎ Restore from a backup…</button><button data-out>Sign out</button>';
       pop.querySelector('b').textContent=email;
       pop.querySelector('[data-sync]').onclick=()=>{ close(); pull().then(()=>scheduleFlush(0),()=>setStatus('error')); };
       pop.querySelector('[data-out]').onclick=()=>{ close(); signOut(); };
     } else {
       pop.innerHTML='<h4>Your data</h4><p>Everything is saved in this browser only. Back up weekly; Safari can clear site data you haven’t opened in a while.'+lastTxt+'</p>'
-        +(CLOUD?'<button data-acct>☁︎ Sign in to sync across devices</button>':'')
+        +(CLOUD?'<button data-acct>☁︎ Sign in to sync across devices</button>':'')+'<button data-claude>✦ '+(window.documentsClaude&&documentsClaude.connected()?'Claude: connected':'Connect Claude (your API key)')+'</button>'
         +'<button data-x>⬇︎ Download a backup (.json)</button><button data-i>⬆︎ Restore from a backup…</button>';
       const a=pop.querySelector('[data-acct]'); if(a) a.onclick=()=>{ lsSet('deviceOnly',null); location.reload(); };
     }
+    const cc=pop.querySelector('[data-claude]'); if(cc) cc.onclick=()=>{ close(); if(window.documentsClaude) documentsClaude.open(); };
     pop.querySelector('[data-x]').onclick=async()=>{ await exportAll(); renderDock(); close(); };
     pop.querySelector('[data-i]').onclick=()=>{
       const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
