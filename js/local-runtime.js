@@ -37,11 +37,16 @@ EventTarget.prototype.addEventListener=function(type,fn,opts){
 EventTarget.prototype.removeEventListener=function(type,fn,opts){ return rawRemove.call(this,type,(fn&&wrapped.get(fn))||fn,opts); };
 
 /* ---------- IndexedDB: records, times, outbox ---------- */
+/* An older copy of the app open in another tab can hold the store in its old format, which makes the upgrade wait
+   until that tab closes. Don't wait forever: give up after a few seconds with code "blocked". This version closes its
+   own connection whenever a newer one asks, so it never blocks a later update. */
 function openIdb(name){
   return new Promise((res,rej)=>{
     const r=indexedDB.open(name,2);
+    const timer=setTimeout(()=>rej(err('blocked','Another tab with an older version of Documents is open.')),6000);
     r.onupgradeneeded=()=>{ ['records','times','outbox'].forEach(s=>{ if(!r.result.objectStoreNames.contains(s)) r.result.createObjectStore(s); }); };
-    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+    r.onsuccess=()=>{ clearTimeout(timer); const d=r.result; d.onversionchange=()=>{ d.close(); }; res(d); };
+    r.onerror=()=>{ clearTimeout(timer); rej(r.error); };
   });
 }
 function readAll(d,store){
@@ -276,11 +281,11 @@ function live(){
 /* First sign-in on this browser: bring along anything saved here before accounts existed (once, to one account). */
 async function adoptDeviceDocs(){
   if(lsGet('adopted')) return;
-  lsSet('adopted',uid);
-  let anon; try{ anon=await openIdb(ANON_DB); }catch(e){ return; }
+  let anon; try{ anon=await openIdb(ANON_DB); }catch(e){ console.warn('adopt later:',e.message); return; } /* tries again next visit */
   const rows=await readAll(anon,'records'); anon.close();
   const ops=rows.map(([k,v])=>[k.replace(/^data\/users\/local\//,'data/users/'+uid+'/'),v]).filter(([k])=>!mem.has(k));
   for(let i=0;i<ops.length;i+=200) await commit(ops.slice(i,i+200));
+  lsSet('adopted',uid);
 }
 
 /* ---------- start-up: who is this, and which store ---------- */
@@ -365,7 +370,7 @@ const downloads={ save:async({filename,data})=>{ saveFile(filename||'download',d
 
 window.claude={
   use:async name=>{
-    if(name==='db'){ try{ await start(); watchRecovery(); return db; }catch(e){ console.error(e); return null; } }
+    if(name==='db'){ try{ await start(); watchRecovery(); return db; }catch(e){ console.error(e); if(e&&e.code==='blocked') alert('Documents is open in another tab with an older version. Close the other Documents tabs, then reload this one.'); return null; } }
     if(name==='user') return user;
     if(name==='downloads') return downloads;
     return null; // comments, mcp, assets, sample: not available here
