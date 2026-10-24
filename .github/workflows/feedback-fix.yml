@@ -1,0 +1,89 @@
+# Feedback → fix → pull request.
+# When an issue gets the "feedback" label (the app's "Send to GitHub" adds it), Claude makes the changes the notes ask
+# for, then this workflow opens a pull request that says "Fixes #N" and links it on the issue. Nothing reaches the live
+# site until you review and merge; merging closes the issue, and the app's Feedback panel then shows those notes as
+# Resolved.
+#
+# Needs one repository secret: CLAUDE_CODE_OAUTH_TOKEN (Claude Pro/Max: run `claude setup-token`) or ANTHROPIC_API_KEY.
+# To run it again on an issue, remove the "feedback" label and add it back.
+
+name: Fix feedback
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: feedback-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    # Only the repository owner's feedback issues (labels can only be set by people with write access anyway).
+    if: github.event.label.name == 'feedback' && github.event.sender.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Claude makes the changes
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          claude_args: |
+            --model claude-opus-5-5
+            --max-turns 60
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(git diff:*),Bash(git status:*),Bash(python3:*),Bash(grep:*)"
+          prompt: |
+            You are fixing feedback for the Documents app in this repository. Read CLAUDE.md first and follow it.
+
+            The feedback is GitHub issue #${{ github.event.issue.number }} ("${{ github.event.issue.title }}").
+            Each numbered note says where in the app the owner was (breadcrumb), the element they pointed at
+            (CSS selector and a markup excerpt to search for in the code), and what they want.
+
+            ---- ISSUE BODY ----
+            ${{ github.event.issue.body }}
+            ---- END ISSUE BODY ----
+
+            Do every note you can. Keep each change as small as the note needs and match the surrounding code.
+            Notes marked [Idea] or that ask you to "propose" something: implement the most sensible version if it is
+            clearly what was asked; otherwise make no code change for that note and write your proposal instead.
+            Do not commit, push or open a pull request; the workflow does that after you finish.
+
+            Before you finish, write .feedback-summary.md in the repository root: one line per note number saying what
+            you changed, or why you made no change and what you propose. This file becomes the pull request text.
+
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          summary="$(cat .feedback-summary.md 2>/dev/null || echo 'Claude did not leave a summary.')"
+          rm -f .feedback-summary.md
+          if [ -z "$(git status --porcelain)" ]; then
+            gh issue comment "$ISSUE" --repo "$REPO" --body "$(printf 'Claude looked at this feedback but made no code changes.\n\n%s' "$summary")"
+            exit 0
+          fi
+          branch="feedback/issue-$ISSUE-$GITHUB_RUN_ID"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add -A
+          git commit -m "Fix feedback from #$ISSUE"
+          git push origin "$branch"
+          url="$(gh pr create --repo "$REPO" --head "$branch" --base "${{ github.event.repository.default_branch }}" \
+            --title "Fix feedback from #$ISSUE" \
+            --body "$(printf '%s\n\nFixes #%s\n\nReview the changes, then merge to publish. Merging closes the issue, and the app marks these notes Resolved.' "$summary" "$ISSUE")")"
+          gh issue comment "$ISSUE" --repo "$REPO" --body "Pull request ready for review: $url"
