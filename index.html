@@ -88,6 +88,11 @@ body:has(.docapp) .chat-fab{z-index:45}body:has(.docapp) .gpanel.chat-panel{z-in
 .q-fab:hover{background:var(--pill)} .q-fab .ms{font-size:20px}
 /*QNOTE*/.qn-fab{position:fixed;z-index:14;right:22px;bottom:calc(72px + env(safe-area-inset-bottom,0px));width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--page);color:var(--accent);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.15)}
 .qn-fab:hover{background:var(--pill)}.qn-fab .ms{font-size:20px}
+/* Labeled, so the two right-hand buttons say what they do (icons alone were easy to mix up). */
+body .q-fab,body .qn-fab{width:auto;height:34px;padding:0 12px 0 9px;border-radius:17px;display:flex;align-items:center;gap:6px}
+body .q-fab[hidden],body .qn-fab[hidden]{display:none}
+.fab-lbl{font:500 13px/1 var(--ui);white-space:nowrap}
+@media (max-width:700px){.fab-lbl{display:none}body .q-fab,body .qn-fab{padding:0 7px}}
 body.qn-on .q-fab{bottom:calc(116px + env(safe-area-inset-bottom,0px))}body.noting .qn-fab{bottom:calc(var(--note-h,0px) + 68px)}body.noting.qn-on .q-fab{bottom:calc(var(--note-h,0px) + 112px)}
 .qn-box{position:fixed;z-index:47;right:66px;bottom:calc(60px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100vw - 90px));background:var(--page);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:10px}
 .qn-box textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:15px/1.45 var(--ui,Roboto,Arial,sans-serif);resize:vertical;background:transparent;color:inherit}
@@ -220,6 +225,22 @@ body.reading.night .toc-item{color:#a79f92}
 .confirm button{border:0;border-radius:12px;padding:3px 10px;cursor:pointer;font-size:12px}
 .confirm .yes{background:#b3261e;color:#fff}.confirm .no{background:var(--pill-hover)}
 .side-btns{display:flex;align-items:center;gap:4px}
+.side-home{border:0;background:none;padding:4px 6px;margin-left:-6px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:pointer;font:inherit;color:inherit}.side-home:hover{background:var(--pill-hover)}.side-home .ms{font-size:18px}
+body.at-home #canvas,body.at-home .toolbar-wrap,body.at-home .title-row,body.at-home .menubar,body.at-home .top-actions,body.at-home .rd-modeseg,body.at-home .q-fab,body.at-home .qn-fab{display:none!important}
+.home{flex:1;min-width:0;overflow:auto;background:var(--canvas)}
+.home-in{max-width:880px;margin:0 auto;padding:40px 24px 80px}
+.home h1{font:400 30px/1.2 var(--ui);margin:0 0 6px}.home h2{font:500 13px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:28px 0 10px}
+.home-sub{color:var(--ink-2);margin:0}
+.home-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:20px}.home-acts .btn{display:inline-flex;align-items:center;gap:6px}
+.home-find{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--pill);border-radius:20px;padding:0 12px;height:38px;min-width:220px}.home-find input{border:0;background:transparent;font:inherit;outline:none;flex:1;min-width:0}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.home-card{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"i t" "i m" "s s";column-gap:10px;row-gap:2px;text-align:left;background:var(--page);border:1px solid #dadce0;border-radius:12px;padding:14px;cursor:pointer;font:inherit;color:inherit;min-width:0}
+.home-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.home-card .ms{grid-area:i;color:var(--doc-icon);font-size:24px}.home-card .hc-t{grid-area:t;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-card .hc-m{grid-area:m;font-size:12px;color:var(--ink-2)}.home-card .hc-s{grid-area:s;font-size:13px;color:var(--ink-2);margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.home-card.wide{width:100%}
+@media (max-width:700px){.home-in{padding:24px 16px 80px}.home-find{margin-left:0;width:100%}}
+.sidebar.drop-pdf{outline:2px dashed var(--accent);outline-offset:-6px;background:var(--active)}
 .folder-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;color:var(--ink);font-weight:500;font-size:14px}
 .folder-row:hover{background:var(--pill-hover)}
 .folder-row .chev{color:var(--ink-2);font-size:18px;width:18px}
@@ -420,6 +441,8 @@ body.reading.rd-idle .readdock{opacity:0;pointer-events:none;transition:opacity 
 .rd-btn.rd-play{width:40px;height:40px;background:#1a73e8;color:#fff}.rd-btn.rd-play:hover{background:#1765cc}.rd-btn.rd-play[aria-pressed="true"]{background:#1a73e8}
 /* loading ring on the play button */
 .rd-btn.rd-play.loading{background:conic-gradient(#1a73e8 var(--p,0%),#c6d4ee 0);color:#fff;cursor:progress}
+.rd-btn.rd-play{width:auto;min-width:40px;padding:0 14px 0 11px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}.rd-play .ms{font-size:20px}.rd-play .lbl{font:500 13px/1 var(--ui);white-space:nowrap}
+.rd-play.loading{background:linear-gradient(90deg,#1a73e8 var(--p,0%),#8fb0e6 0)}
 .rd-btn.rd-play:disabled{cursor:progress}
 .spd-ctl .spd-big:disabled{cursor:progress;opacity:1}
 body.reading.night .rd-btn.rd-play.loading{background:conic-gradient(#8ab4f8 var(--p,0%),#3a3f4b 0)}
@@ -693,7 +716,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
 /*SPEED-CSS-END*/
 </style>
 <script src="js/config.js?v=4"></script>
-<script src="js/local-runtime.js?v=5"></script>
+<script src="js/local-runtime.js?v=6"></script>
 </head>
 <body>
 <header class="topbar">
@@ -778,8 +801,8 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
 <div class="workspace">
 <aside class="sidebar" id="sidebar" aria-label="Your documents">
   <div class="side-head">
-    <span class="side-title">Documents</span>
-    <span class="side-btns"><button class="tb" id="newFolderBtn" title="New folder"><span class="ms">create_new_folder</span></button><button class="btn-new" id="newDocBtn" title="New document"><span class="ms">add</span>New</button></span>
+    <button class="side-title side-home" id="homeBtn" title="Home: recent documents" type="button"><span class="ms">home</span>Documents</button>
+    <span class="side-btns"><button class="tb" id="importBtn" title="Import PDFs (or drop them here)" aria-label="Import PDFs"><span class="ms">upload_file</span></button><button class="tb" id="newFolderBtn" title="New folder"><span class="ms">create_new_folder</span></button><button class="btn-new" id="newDocBtn" title="New document"><span class="ms">add</span>New</button></span>
   </div>
   <div class="side-search"><span class="ms">search</span><input id="docSearch" type="search" placeholder="Search documents" aria-label="Search documents"></div>
   <ul class="doc-list" id="docList"></ul>
@@ -792,7 +815,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
   <div class="modechip endcard" id="endCard" hidden role="dialog" aria-label="Finished reading"><span class="mc-t"></span><button class="ok" data-notes>Go to my notes</button><button data-next hidden></button><button data-exit>Exit reading mode</button></div>
   <div class="modechip" id="modeChip" hidden role="status"><span class="mc-t"></span><button class="ok" data-keep>OK</button><button data-switch></button></div>
   <button class="readreturn" id="readReturn" hidden><span class="ms">undo</span><span>Return to where I was</span></button>
-  <div class="readdock" id="readBar" hidden role="toolbar" aria-label="Reading controls"><span class="rb-pos" id="rbPos" aria-live="polite"></span><span class="rd-pct" id="rbPct" hidden>0%</span><button class="rd-btn" id="rbPrev" title="Previous sentence (←)" aria-label="Previous sentence"><span class="ms">arrow_back</span></button><button class="rd-btn rd-play" id="rbListen" title="Listen: read aloud (V)" aria-label="Listen" aria-pressed="false"><span class="ms">play_arrow</span></button><button class="rd-btn" id="rbNext" title="Next sentence (→)" aria-label="Next sentence"><span class="ms">arrow_forward</span></button><span class="rd-sep"></span><button class="rd-btn rd-aa" id="rbAa" title="Text and display" aria-label="Text and display" aria-haspopup="true" aria-expanded="false"><span style="font:600 15px Georgia,serif">Aa</span></button><button class="rd-btn" id="rbMore" title="More" aria-label="More" aria-haspopup="true" aria-expanded="false"><span class="ms">more_horiz</span></button><div class="rd-pop" id="rdAaPop" hidden role="group" aria-label="Text and display"><div class="rd-row"><button class="rd-btn" id="rbSmaller" title="Smaller text (−)" aria-label="Smaller text"><span style="font:600 12px Georgia,serif">A</span></button><span class="rd-lbl2">Text size</span><button class="rd-btn" id="rbBigger" title="Larger text (+)" aria-label="Larger text"><span style="font:600 17px Georgia,serif">A</span></button></div><div class="rd-row"><button class="rd-item" id="rbNight" title="Night mode (N)" aria-pressed="false"><span class="ms">dark_mode</span><span>Night mode</span></button></div><div class="rd-row" hidden><button class="rd-btn rd-mode" id="rbMode" title="Reading depth (M)" aria-label="Reading depth"><span class="ms">school</span><span class="rd-lbl">Academic</span></button></div></div><div class="rd-pop" id="rdMorePop" hidden role="menu" aria-label="More"><button class="rd-item" id="rbSpeed" role="menuitem" title="Guided reading (S)"><span class="ms">speed</span><span>Guided reading</span><kbd>S</kbd></button><button class="rd-item" id="rbSum" role="menuitem" title="Summary of the section you're in (U)"><span class="ms">summarize</span><span>Summary</span><kbd>U</kbd></button><button class="rd-item" id="rbPrep" role="menuitem" aria-pressed="false" title="Make about 10 minutes of audio ahead of you, and keep it going as you read"><span class="ms">download</span><span class="lbl">Prepare audio ahead</span></button><button class="rd-item" id="rbNote" role="menuitem" title="Note on this paragraph (A)"><span class="ms">edit_note</span><span>Note on this paragraph</span><kbd>A</kbd></button><button class="rd-item" id="rbLost" role="menuitem" title="I'm lost: where are we? (L)"><span class="ms">explore</span><span>I'm lost</span><kbd>L</kbd></button><button class="rd-item" id="rbGpu" role="menuitemcheckbox" aria-pressed="true" title="Make the voice on the graphics chip when this computer supports it (much faster). Turn off if the voice sounds wrong."><span class="ms">memory</span><span class="lbl">Use graphics chip for the voice: on</span></button><button class="rd-item" id="rbSave" role="menuitem" title="Make the whole tab once and keep it in this browser, so it plays instantly later"><span class="ms">download_for_offline</span><span class="lbl">Save this tab for listening</span></button><div class="rd-saved" id="rdSaved" hidden><div class="rd-log-h">Saved for listening</div><div class="sv-list"></div></div><div class="rd-log" id="rdVoiceLog" hidden><div class="rd-log-h">Why the voice paused</div><div class="lg"></div></div><button class="rd-item" id="rbExit" role="menuitem" title="Back to writing (Esc)"><span class="ms">close</span><span>Exit Reading mode</span><kbd>Esc</kbd></button></div></div>
+  <div class="readdock" id="readBar" hidden role="toolbar" aria-label="Reading controls"><span class="rb-pos" id="rbPos" aria-live="polite"></span><span class="rd-pct" id="rbPct" hidden>0%</span><button class="rd-btn" id="rbPrev" title="Previous sentence (←)" aria-label="Previous sentence"><span class="ms">arrow_back</span></button><button class="rd-btn rd-play" id="rbListen" title="Listen: read aloud (V)" aria-label="Listen" aria-pressed="false"><span class="ms">volume_up</span><span class="lbl">Listen</span></button><button class="rd-btn" id="rbNext" title="Next sentence (→)" aria-label="Next sentence"><span class="ms">arrow_forward</span></button><span class="rd-sep"></span><button class="rd-btn rd-aa" id="rbAa" title="Text and display" aria-label="Text and display" aria-haspopup="true" aria-expanded="false"><span style="font:600 15px Georgia,serif">Aa</span></button><button class="rd-btn" id="rbMore" title="More" aria-label="More" aria-haspopup="true" aria-expanded="false"><span class="ms">more_horiz</span></button><div class="rd-pop" id="rdAaPop" hidden role="group" aria-label="Text and display"><div class="rd-row"><button class="rd-btn" id="rbSmaller" title="Smaller text (−)" aria-label="Smaller text"><span style="font:600 12px Georgia,serif">A</span></button><span class="rd-lbl2">Text size</span><button class="rd-btn" id="rbBigger" title="Larger text (+)" aria-label="Larger text"><span style="font:600 17px Georgia,serif">A</span></button></div><div class="rd-row"><button class="rd-item" id="rbNight" title="Night mode (N)" aria-pressed="false"><span class="ms">dark_mode</span><span>Night mode</span></button></div><div class="rd-row" hidden><button class="rd-btn rd-mode" id="rbMode" title="Reading depth (M)" aria-label="Reading depth"><span class="ms">school</span><span class="rd-lbl">Academic</span></button></div></div><div class="rd-pop" id="rdMorePop" hidden role="menu" aria-label="More"><button class="rd-item" id="rbSpeed" role="menuitem" title="Guided reading (S)"><span class="ms">speed</span><span>Guided reading</span><kbd>S</kbd></button><button class="rd-item" id="rbSum" role="menuitem" title="Summary of the section you're in (U)"><span class="ms">summarize</span><span>Summary</span><kbd>U</kbd></button><button class="rd-item" id="rbPrep" role="menuitem" aria-pressed="false" title="Make about 10 minutes of audio ahead of you, and keep it going as you read"><span class="ms">download</span><span class="lbl">Prepare audio ahead</span></button><button class="rd-item" id="rbNote" role="menuitem" title="Note on this paragraph (A)"><span class="ms">edit_note</span><span>Note on this paragraph</span><kbd>A</kbd></button><button class="rd-item" id="rbLost" role="menuitem" title="I'm lost: where are we? (L)"><span class="ms">explore</span><span>I'm lost</span><kbd>L</kbd></button><button class="rd-item" id="rbGpu" role="menuitemcheckbox" aria-pressed="true" title="Make the voice on the graphics chip when this computer supports it (much faster). Turn off if the voice sounds wrong."><span class="ms">memory</span><span class="lbl">Use graphics chip for the voice: on</span></button><button class="rd-item" id="rbSave" role="menuitem" title="Make the whole tab once and keep it in this browser, so it plays instantly later"><span class="ms">download_for_offline</span><span class="lbl">Save this tab for listening</span></button><div class="rd-saved" id="rdSaved" hidden><div class="rd-log-h">Saved for listening</div><div class="sv-list"></div></div><div class="rd-log" id="rdVoiceLog" hidden><div class="rd-log-h">Why the voice paused</div><div class="lg"></div></div><button class="rd-item" id="rbExit" role="menuitem" title="Back to writing (Esc)"><span class="ms">close</span><span>Exit Reading mode</span><kbd>Esc</kbd></button></div></div>
   <div class="banner" id="banner" hidden><span class="ms">sync</span><span id="bannerText">This document changed somewhere else.</span><button class="btn ghost" id="bannerLoad">Load changes</button></div>
   <div class="tabstrip" id="tabstrip" role="tablist" aria-label="Document tabs"></div>
   <div class="page-wrap">
@@ -804,9 +827,9 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
 <input type="file" id="fileInput" accept="image/*" hidden>
 <button class="full-exit" id="fullExit" title="Leave full screen (Esc)" aria-label="Leave full screen"><span class="ms">close_fullscreen</span><span>Exit full screen</span></button>
 <div class="notes-bar" id="notesBar" role="toolbar" aria-label="Notes mode"><span class="nb-name" id="nbName"></span><button id="nbExit" title="Leave notes mode" aria-label="Leave notes mode"><span class="ms">close_fullscreen</span></button></div>
-<button class="q-fab" id="qFab" title="Listening queue" aria-label="Listening queue" aria-expanded="false" aria-controls="qPanel"><span class="ms">queue_music</span><span class="q-badge" hidden></span></button>
+<button class="q-fab" id="qFab" title="Listening queue" aria-label="Listening queue" aria-expanded="false" aria-controls="qPanel"><span class="ms">queue_music</span><span class="fab-lbl">Listening queue</span><span class="q-badge" hidden></span></button>
 <div class="gpanel q-panel" id="qPanel" hidden role="dialog" aria-label="Listening queue"><div class="gpanel-head"><span class="ms">queue_music</span><h3>Listening queue</h3><button class="tb" id="qClose" title="Close"><span class="ms">close</span></button></div><div class="q-list"></div></div>
-<button class="qn-fab" id="qnFab" hidden title="Quick note" aria-label="Quick note" aria-expanded="false" aria-controls="qnBox"><span class="ms">edit_square</span></button><div class="qn-box" id="qnBox" hidden role="dialog" aria-label="Quick note"><textarea id="qnText" rows="6" placeholder="Write it down…"></textarea><div class="qn-foot"><span class="qn-st" id="qnSt"></span><button class="btn" id="qnSave">Save <span class="k">⌘↵</span></button></div></div><button class="chat-fab" id="chatFab" title="Ask Claude" aria-label="Ask Claude" aria-expanded="false" aria-controls="chatPanel"><span class="ms">forum</span><span class="chat-dot" hidden></span></button>
+<button class="qn-fab" id="qnFab" hidden title="Quick note" aria-label="Quick note" aria-expanded="false" aria-controls="qnBox"><span class="ms">edit_square</span><span class="fab-lbl">Quick note</span></button><div class="qn-box" id="qnBox" hidden role="dialog" aria-label="Quick note"><textarea id="qnText" rows="6" placeholder="Write it down…"></textarea><div class="qn-foot"><span class="qn-st" id="qnSt"></span><button class="btn" id="qnSave">Save <span class="k">⌘↵</span></button></div></div><button class="chat-fab" id="chatFab" title="Ask Claude" aria-label="Ask Claude" aria-expanded="false" aria-controls="chatPanel"><span class="ms">forum</span><span class="chat-dot" hidden></span></button>
 <div class="gpanel chat-panel" id="chatPanel" hidden role="dialog" aria-label="Ask Claude">
   <div class="gpanel-head"><span class="ms">forum</span><h3>Ask Claude</h3><button class="tb" id="chatClose" title="Close" aria-label="Close"><span class="ms">close</span></button></div>
   <div class="chat-list" id="chatList"></div>
@@ -816,12 +839,23 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
     <div class="chat-acts"><button class="btn ghost" id="chatSend" title="Queue it: Claude waits until you press Go ahead">Send</button><button class="btn" id="chatNow" title="Ask Claude to start right away">Implement now</button></div>
   </div>
 </div>
-<input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>
+<input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden><input type="file" id="pdfMany" accept="application/pdf,.pdf" multiple hidden><input type="file" id="pdfFolder" webkitdirectory multiple hidden>
 
 <script>
 (() => {
 const $ = s => document.querySelector(s);
 const doc = $('#doc'), titleEl = $('#docTitle'), statusText = $('#statusText'), statusIcon = $('#status .ms');
+/* Safari can't size an input to its text (no field-sizing), so the title box stayed one width and scrolled while typing.
+   Measure the text and set the width instead, whenever the title is typed or set. */
+if(!(window.CSS && CSS.supports('field-sizing','content'))){
+  const meas=document.createElement('span'); meas.setAttribute('aria-hidden','true');
+  meas.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;white-space:pre;font:400 18px/24px var(--ui)';
+  document.body.appendChild(meas);
+  const fitTitle=()=>{ meas.textContent=titleEl.value||' '; titleEl.style.width=Math.ceil(meas.getBoundingClientRect().width+16)+'px'; };
+  const vd=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+  Object.defineProperty(titleEl,'value',{configurable:true, get(){ return vd.get.call(this); }, set(v){ vd.set.call(this,v); fitTitle(); }});
+  titleEl.addEventListener('input',fitTitle); if(document.fonts) document.fonts.ready.then(fitTitle); fitTitle();
+}
 let savedRange = null, dirty = false, saveTimer = null, saving = false, readOnly = false;
 
 let commentsApi = null, downloadsApi = null, assetsApi = null;
@@ -2129,6 +2163,7 @@ $('#bannerLoad').addEventListener('click',()=>{ if(pendingRemote!=null){ clearTi
 
 function rememberTab(){ try{ localStorage.setItem('tab:'+curId, curTab); }catch(e){} }
 async function openDoc(id, opts={}){
+  hideHome();
   if(id===curId && !opts.force) return;
   try{ closeDocApp(); }catch(e){}
   if(dirty) await save(false);
@@ -2297,6 +2332,7 @@ function confirmDeleteTab(anchor,id){
 /* A new document always opens in writing mode, ready to type, even if you were reading when you made it. */
 const NEW_WRITE=true;
 function newDoc(){
+  hideHome();
   try{ if(NEW_WRITE && reading) exitReading(); }catch(e){}
   if(dirty) save(false);
   if(unsubBody){ unsubBody(); unsubBody=null; }
@@ -2594,9 +2630,49 @@ function pickInitial(){
     curId=pending.id; curTabs=(pending.tabs&&pending.tabs.length)?pending.tabs:DEFAULT_TABS(); curTab=pending.tab||curTabs[0].id;
     titleEl.value=pending.title||'Untitled document'; doc.innerHTML=pending.html||'<p><br></p>';
     setHash(curId); renderTabs(); renderList(); subscribeBody(); dirty=true; setStatus('sync','Restoring unsaved changes…'); saveTimer=setTimeout(()=>save(false),1200);
-  } else if(id) openDoc(id,{force:true});
+  } else if(id && (has(hotState.docId) || has(hash))) openDoc(id,{force:true});
+  else if(docsList.length) showHome();
   else { curTabs=DEFAULT_TABS(); curTab='t1'; renderTabs(); setStatus('edit_note','New document. It saves once you type.'); }
 }
+
+/* ---------- Home: what you see on opening the app. Pick up where you left off, a recent document, or start something
+   new. A link to a specific document (#id in the address) still opens that document directly. ---------- */
+let homeEl=null;
+function hideHome(){ if(!homeEl) return; homeEl.remove(); homeEl=null; document.body.classList.remove('at-home'); }
+function showHome(){
+  if(reading) try{ exitReading(); }catch(e){}
+  hideHome(); document.body.classList.add('at-home');
+  homeEl=document.createElement('section'); homeEl.className='home'; homeEl.setAttribute('aria-label','Home');
+  const hr=new Date().getHours(), hello=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
+  homeEl.innerHTML='<div class="home-in"><h1>'+hello+'</h1><p class="home-sub">Pick up where you left off, or open something new.</p>'
+    +'<div class="home-acts"><button class="btn" data-new><span class="ms">add</span>New document</button><button class="btn ghost" data-imp><span class="ms">upload_file</span>Import PDFs</button>'
+    +'<label class="home-find"><span class="ms">search</span><input type="search" placeholder="Find a document" aria-label="Find a document"></label></div>'
+    +'<div data-cont></div><h2>Recent</h2><div class="home-grid" data-recent></div></div>';
+  const folderName=id=>{ const f=folders.find(x=>x.id===id); return f?f.name:''; };
+  const card=d=>{ const b=document.createElement('button'); b.className='home-card'; b.type='button';
+    b.innerHTML='<span class="ms">'+(d.kind==='upload'?'picture_as_pdf':'description')+'</span><span class="hc-t"></span><span class="hc-m"></span><span class="hc-s"></span>';
+    b.querySelector('.hc-t').textContent=d.title||'Untitled document';
+    b.querySelector('.hc-m').textContent=[folderName(d.folder), when(d.updated), (d.tabs&&d.tabs.length>1)?d.tabs.length+' tabs':''].filter(Boolean).join(' · ');
+    b.querySelector('.hc-s').textContent=d.snippet||'';
+    b.onclick=()=>openDoc(d.id,{force:true}); return b; };
+  let last=null; try{ last=localStorage.getItem('lastDoc'); }catch(e){}
+  const lastDoc=docsList.find(d=>d.id===last);
+  if(lastDoc){ const c=homeEl.querySelector('[data-cont]'); c.innerHTML='<h2>Continue</h2>'; const k=card(lastDoc); k.classList.add('wide'); c.appendChild(k); }
+  const grid=homeEl.querySelector('[data-recent]');
+  const fill=q=>{ grid.innerHTML=''; q=(q||'').trim().toLowerCase();
+    const list=docsList.filter(d=>!q || (d.title||'').toLowerCase().includes(q) || (d.snippet||'').toLowerCase().includes(q) || folderName(d.folder).toLowerCase().includes(q));
+    (q?list:list.filter(d=>d.id!==last).slice(0,12)).forEach(d=>grid.appendChild(card(d)));
+    if(!grid.children.length) grid.innerHTML='<p class="home-sub">'+(q?'No documents match.':'Nothing else yet.')+'</p>'; };
+  fill('');
+  const inp=homeEl.querySelector('input'); inp.addEventListener('input',()=>fill(inp.value));
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const f=grid.querySelector('.home-card'); if(f) f.click(); } });
+  homeEl.querySelector('[data-new]').onclick=()=>newDocIn(curFolder);
+  homeEl.querySelector('[data-imp]').onclick=e=>importMenu(e.currentTarget);
+  $('#canvas').after(homeEl);
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  setTimeout(()=>{ if(homeEl && matchMedia('(hover:hover)').matches) inp.focus(); },50);
+}
+$('#homeBtn').addEventListener('click',()=>{ if(dirty) save(false); showHome(); });
 
 /* ---------- sidebar toggle ---------- */
 function toggleSide(show){
@@ -4463,14 +4539,16 @@ self.onmessage=async e=>{ const m=e.data;
   if(m.type==='init'){ try{
     const man=m.man, base=m.base, HF='https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/', files=m.files||{};
     const raw=self.fetch.bind(self);
-    const local=async p=>{ if(files[p]) return new Response(new Blob([files[p]]),{status:200,headers:{'content-length':String(files[p].byteLength)}}); const parts=man.parts[p]; if(!parts){ const r=await raw(base+'m/'+p.replace(/\.bin$/,'.wasm')); if(!r.ok) return r; const b=await r.blob(); return new Response(b,{status:200,headers:{'content-length':String(b.size)}}); }
+    const local=async p=>{ if(files[p]) return new Response(new Blob([files[p]]),{status:200,headers:{'content-length':String(files[p].byteLength)}}); const parts=man.parts[p]; if(!parts){ const r=await raw((man.remote&&man.remote[p])||base+'m/'+p.replace(/\.bin$/,'.wasm')); if(!r.ok) return r; const b=await r.blob(); return new Response(b,{status:200,headers:{'content-length':String(b.size)}}); }
       const bufs=[]; for(const x of parts){ const r=await raw(base+'m/'+x); if(!r.ok) throw new Error('missing '+x); bufs.push(await r.arrayBuffer()); }
       const b=new Blob(bufs); return new Response(b,{status:200,headers:{'content-length':String(b.size)}}); };
     self.fetch=(u,o)=>{ const s=typeof u==='string'?u:(u&&u.url)||String(u); return s.startsWith(HF)?local(s.slice(HF.length)):raw(u,o); };
-    let mod; try{ mod=await import(base+'kokoro.js'); }catch(err){ const t=await (await raw(base+'kokoro.js')).text(); mod=await import(URL.createObjectURL(new Blob([t],{type:'text/javascript'}))); }
-    const env=mod.env; env.useBrowserCache=false; env.allowLocalModels=false;
-    env.backends.onnx.wasm.numThreads=1; env.backends.onnx.wasm.proxy=false;
-    env.backends.onnx.wasm.wasmBinary=await (await local('ort/ort-wasm-simd-threaded.jsep.wasm')).arrayBuffer();
+    let mod; try{ mod=await import(man.kokoro||base+'kokoro.js'); }catch(err){ const t=await (await raw(man.kokoro||base+'kokoro.js')).text(); mod=await import(URL.createObjectURL(new Blob([t],{type:'text/javascript'}))); }
+    const env=mod.env;
+    if(env.backends){ env.useBrowserCache=false; env.allowLocalModels=false;
+      env.backends.onnx.wasm.numThreads=1; env.backends.onnx.wasm.proxy=false;
+      env.backends.onnx.wasm.wasmBinary=await (await local('ort/ort-wasm-simd-threaded.jsep.wasm')).arrayBuffer(); }
+    else if(man.remote){ env.wasmPaths=man.remote['ort/ort-wasm-simd-threaded.jsep.wasm'].replace(/[^/]+$/,''); } /* public kokoro-js build: it only takes the runtime's folder */
     tts=await mod.KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX',{dtype:m.dtype||'fp16',device:m.device||'wasm',progress_callback:p=>{ if(p.status==='progress') postMessage({type:'prog',file:p.file,loaded:p.loaded,total:p.total}); }});
     if(m.device==='webgpu'){ /* check the graphics chip's audio is sound before using it: no broken samples, normal loudness and length */
       await tts.generate('Warming up.',{voice:'bf_emma'}); /* first run prepares the chip; the timed check follows */
@@ -4487,6 +4565,12 @@ self.onmessage=async e=>{ const m=e.data;
 /* Back on the original voice file: the half-precision one (needed for the graphics chip) produced broken audio at some
    speeds, such as 1.2×. The graphics chip stays off until that's solved. */
 const V_MODEL='onnx/model_quantized.onnx', V_DTYPE='q8';
+const V_HF='https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/';
+const V_REMOTE={parts:{}, kokoro:'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js',
+  remote:{'config.json':V_HF+'config.json','tokenizer.json':V_HF+'tokenizer.json','tokenizer_config.json':V_HF+'tokenizer_config.json',
+    'voices/bf_emma.bin':V_HF+'voices/bf_emma.bin',[V_MODEL]:V_HF+V_MODEL,
+    /* must match the ONNX runtime inside kokoro-js 1.2.1 (transformers 3.5.1) */
+    'ort/ort-wasm-simd-threaded.jsep.wasm':'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/ort-wasm-simd-threaded.jsep.wasm'}};
 function vGpuPref(){ try{ return localStorage.getItem('voiceGPU')!=='0'; }catch(e){ return true; } }
 function vGpuToggle(){ const on=!vGpuPref(); try{ localStorage.setItem('voiceGPU', on?'1':'0'); }catch(e){} vGpuBtn(); toast(on?'Graphics chip turned on for the voice. Reload the page to start using it.':'Graphics chip turned off for the voice. Reload the page to switch to the processor.'); }
 function vGpuBtn(){ const b=document.getElementById('rbGpu'); if(!b) return; if(V_DTYPE!=='fp16'){ b.hidden=true; return; } const on=vGpuPref(); b.setAttribute('aria-pressed',on?'true':'false');
@@ -4495,7 +4579,11 @@ function vLoad(){
   if(V.loading) return V.loading;
   V.loading=(async()=>{
     const base=new URL('voice/',document.baseURI).href;
-    const man=await (await fetch(base+'manifest.json')).json(); V.voices=['bf_emma']; vBtn(); /* one voice: Emma (UK) */
+    /* Model files published with the page under voice/ when present; otherwise straight from their public homes
+       (Hugging Face for the model, jsDelivr for the code), which the browser then keeps in its cache. */
+    let man=null; try{ const r=await fetch(base+'manifest.json'); if(r.ok) man=await r.json(); }catch(e){}
+    if(!man) man=V_REMOTE;
+    V.voices=['bf_emma']; vBtn(); /* one voice: Emma (UK) */
     V.jobs=new Map(); V.jobId=0; const seen={};
     /* Run the voice in a background worker so the page never stalls; if this browser won't start one, run it here. */
     /* Run the voice in background workers, two or three side by side (one per spare core), so sentences are made in
@@ -4506,7 +4594,7 @@ function vLoad(){
       const want=['config.json','tokenizer.json','tokenizer_config.json','voices/bf_emma.bin',V_MODEL,'ort/ort-wasm-simd-threaded.jsep.wasm'];
       const urls=[]; want.forEach(p=>{ (man.parts[p]||[p.replace(/\.bin$/,'.wasm')]).forEach(x=>urls.push([p,x])); });
       let got=0; const bufs={};
-      await Promise.all(urls.map(async([p,x])=>{ const r=await fetch(base+'m/'+x); if(!r.ok) throw new Error('missing '+x); const b=await r.arrayBuffer(); (bufs[p]=bufs[p]||{})[x]=b; got++; V.pct=Math.round(90*got/urls.length); vBtn(); }));
+      await Promise.all(urls.map(async([p,x])=>{ const r=await fetch((man.remote&&man.remote[p])||base+'m/'+x); if(!r.ok) throw new Error('missing '+x); const b=await r.arrayBuffer(); (bufs[p]=bufs[p]||{})[x]=b; got++; V.pct=Math.round(90*got/urls.length); vBtn(); }));
       files={}; want.forEach(p=>{ const parts=man.parts[p]||[p.replace(/\.bin$/,'.wasm')]; const tot=parts.reduce((n,x)=>n+bufs[p][x].byteLength,0); const out=new Uint8Array(tot); let o=0; parts.forEach(x=>{ out.set(new Uint8Array(bufs[p][x]),o); o+=bufs[p][x].byteLength; }); files[p]=out.buffer; });
     }catch(e){ why=String(e&&e.message||e); files=null; }
     const cores=navigator.hardwareConcurrency||4, mem=navigator.deviceMemory||8; let N=Math.max(2, Math.min(mem>=8?4:3, Math.floor(cores/2)+(cores>=10?1:0))); /* more engines on bigger machines: 4 on an 8-core Mac */
@@ -4549,13 +4637,15 @@ function vLoad(){
     try{
       const HF='https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/';
       const raw=window.__vRawFetch||(window.__vRawFetch=window.fetch.bind(window));
-      const local=async p=>{ const parts=man.parts[p]; if(!parts){ const r=await raw(base+'m/'+p.replace(/\.bin$/,'.wasm')); if(!r.ok) return r; const b=await r.blob(); return new Response(b,{status:200,headers:{'content-length':String(b.size)}}); }
+      const local=async p=>{ const parts=man.parts[p]; if(!parts){ const r=await raw((man.remote&&man.remote[p])||base+'m/'+p.replace(/\.bin$/,'.wasm')); if(!r.ok) return r; const b=await r.blob(); return new Response(b,{status:200,headers:{'content-length':String(b.size)}}); }
         const bufs=[]; for(const x of parts){ const r=await raw(base+'m/'+x); if(!r.ok) throw new Error('missing '+x); bufs.push(await r.arrayBuffer()); }
         const b=new Blob(bufs); return new Response(b,{status:200,headers:{'content-length':String(b.size)}}); };
       window.fetch=(u,o)=>{ const s2=typeof u==='string'?u:(u&&u.url)||String(u); return s2.startsWith(HF)?local(s2.slice(HF.length)):raw(u,o); };
-      let mod; try{ mod=await import(base+'kokoro.js'); }catch(e){ const t=await (await raw(base+'kokoro.js')).text(); mod=await import(URL.createObjectURL(new Blob([t],{type:'text/javascript'}))); }
-      const env=mod.env; env.useBrowserCache=false; env.allowLocalModels=false; env.backends.onnx.wasm.numThreads=1; env.backends.onnx.wasm.proxy=false;
-      env.backends.onnx.wasm.wasmBinary=await (await local('ort/ort-wasm-simd-threaded.jsep.wasm')).arrayBuffer();
+      let mod; try{ mod=await import(man.kokoro||base+'kokoro.js'); }catch(e){ const t=await (await raw(man.kokoro||base+'kokoro.js')).text(); mod=await import(URL.createObjectURL(new Blob([t],{type:'text/javascript'}))); }
+      const env=mod.env;
+      if(env.backends){ env.useBrowserCache=false; env.allowLocalModels=false; env.backends.onnx.wasm.numThreads=1; env.backends.onnx.wasm.proxy=false;
+        env.backends.onnx.wasm.wasmBinary=await (await local('ort/ort-wasm-simd-threaded.jsep.wasm')).arrayBuffer(); }
+      else if(man.remote){ env.wasmPaths=man.remote['ort/ort-wasm-simd-threaded.jsep.wasm'].replace(/[^/]+$/,''); } /* public kokoro-js build: it only takes the runtime's folder */
       const t=await mod.KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX',{dtype:V_DTYPE,device:'wasm',progress_callback:p=>{ if(p.status==='progress'&&p.total){ seen[p.file]=[p.loaded,p.total]; let a=0,b=0; Object.values(seen).forEach(([x,y])=>{a+=x;b+=y;}); V.pct=Math.round(100*a/b); vBtn(); } }});
       V.tts={generate:async(text,o)=>{ const a=await t.generate(text,{voice:o.voice,speed:o.speed}); return {data:a.audio,rate:a.sampling_rate}; }};
       V.pct=100; vBtn(); try{ vGpuBtn(); }catch(e){} setTimeout(vWarmHere,0); return V.tts;
@@ -4569,7 +4659,7 @@ function vBtn(){
   if(!spd) return; const el=spd.el, on=!!spd.voice; el.classList.toggle('listening',on);
   el.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.mode==='listen')===on)));
   el.querySelector('.spd-ctl.rd').hidden=on; el.querySelector('.spd-player').hidden=!on;
-  const msg=el.querySelector('.spd-msg'); msg.hidden=!V.err; if(V.err) msg.textContent='The voice couldn’t load: '+V.err.slice(0,200);
+  const msg=el.querySelector('.spd-msg'); msg.hidden=!V.err; if(V.err) msg.textContent='The voice couldn’t load ('+V.err.slice(0,120)+'). Check your connection, then press Listen to try again.';
   const loading=on&&!V.tts, big=el.querySelector('[data-lplay]');
   big.classList.toggle('loading',loading); big.disabled=loading; el.querySelector('.spd-ring .fg').style.strokeDashoffset=String(100-(V.pct||0));
   big.title=loading?'Loading voice '+(V.pct||0)+'%':(spd.playing?'Pause (Space)':'Play (Space)');
@@ -4752,7 +4842,7 @@ let lsn=null;
 const LSN_ONE=true; /* in Academic mode Listen reads one sentence per → */
 function lsnWords(u,s){ const t=u.el.textContent; const [a,b]=u.sents[s]; const out=[]; const re=/\S+/g; const seg=t.slice(a,b); let m; while((m=re.exec(seg))) out.push({w:m[0],a:a+m.index,b:a+m.index+m[0].length,s:0}); return out; }
 function lsnMark(u,x){ if(!(window.CSS&&CSS.highlights&&typeof Highlight!=='undefined')) return; if(!x){ CSS.highlights.delete('read-word'); return; } const r=rangeAt(u.el,x.a,x.b); const h=new Highlight(); if(r) h.add(r); h.priority=2; CSS.highlights.set('read-word',h); }
-function lsnBtn(){ const b=$('#rbListen'); if(!b) return; const ready=!!V.tts; b.disabled=!ready && !V.err; b.classList.toggle('loading',!ready && !V.err); b.style.setProperty('--p',(V.pct||0)+'%'); b.setAttribute('aria-pressed',lsn?'true':'false'); const ic=b.querySelector('.ms'); if(ic) ic.textContent=lsn?'pause':(V.err&&!ready?'refresh':'play_arrow'); if(!ready){ b.title=V.err?'The voice couldn’t load. Click to try again.':'Loading voice '+(V.pct||0)+'%'; return; } b.title=lsn?(V.tts?'Stop listening (V)':'Loading voice '+V.pct+'%'):'Listen: read aloud (V)'; }
+function lsnBtn(){ const b=$('#rbListen'); if(!b) return; const ready=!!V.tts; b.disabled=!ready && !V.err; b.classList.toggle('loading',!ready && !V.err); b.style.setProperty('--p',(V.pct||0)+'%'); b.setAttribute('aria-pressed',lsn?'true':'false'); const ic=b.querySelector('.ms'); if(ic) ic.textContent=lsn?'pause':(V.err&&!ready?'refresh':'volume_up'); const lb=b.querySelector('.lbl'); if(lb) lb.textContent=lsn&&ready?'Pause':!ready?(V.err?'Retry voice':(V.loading?'Loading '+(V.pct||0)+'%':'Listen')):'Listen'; if(!ready){ b.title=V.err?'The voice couldn’t load. Click to try again.':'Loading voice '+(V.pct||0)+'%'; return; } b.title=lsn?(V.tts?'Stop listening (V)':'Loading voice '+V.pct+'%'):'Listen: read aloud (V)'; }
 function lsnStop(){ if(!lsn) return; lsn=null; vStop(); lsnMark(); lsnBtn(); }
 function lsnPrefetch(){ const units=readUnits(); const u=units[rPos.b]; if(!u) return; const t=u.el.textContent; const ws=[]; u.sents.forEach(([x,y],si)=>{ (t.slice(x,y).match(/\S+/g)||[]).forEach(w=>ws.push({w,s:si})); }); let e=-1, c=0; for(let k=0;k<ws.length;k++){ if(ws[k].s===rPos.s) e=k; } if(e<0) return; vAhead(ws,e,rPos.b,5); }
 async function lsnStart(){
@@ -4786,6 +4876,8 @@ async function lsnStart(){
 }
 function lsnToggle(){ if(!V.tts){ if(!V.loading){ V.err=''; vLoad(); lsnBtn(); } return; } lsn?lsnStop():lsnStart(); }
 $('#rbListen').addEventListener('click', lsnToggle); $('#rbListen').addEventListener('click', ()=>{ V.wantArticle=true; });
+/* In Academic mode Listen reads one sentence, then waits for →. Say so the first time, so it doesn't look stuck. */
+$('#rbListen').addEventListener('click',()=>{ setTimeout(()=>{ try{ if(lsn && readMode()!=='light' && !localStorage.getItem('lsnHint')){ localStorage.setItem('lsnHint','1'); toast('Academic mode reads one sentence at a time: press → for the next. Choose Light at the top to listen straight through.'); } }catch(e){} },400); });
 document.addEventListener('keydown',e=>{ if(!reading || rNote || spd || e.ctrlKey || e.metaKey || e.altKey) return; const t=e.target; if(t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable)) return; if(e.key==='v'||e.key==='V'){ e.preventDefault(); lsnToggle(); } });
 /*LISTEN-JS-END*/
 
@@ -6143,17 +6235,16 @@ function cleanBaseName(name){
   return (n||'Imported PDF').slice(0,34).trim();
 }
 const HEAD_NUM=/\b(No\.?|Number|Chapter|Ch\.|Part|Book|Section|Article|Lecture|Letter|Essay)\s*([0-9]+|[IVXLCDM]+)\b/i;
-async function importPdf(file){
-  if(!db){ toast('Importing needs a connection. Try again in a moment.'); return; }
-  if(file.size>60*1024*1024){ toast('That PDF is over 60 MB. Try a smaller file.'); return; }
-  toast('Opening '+file.name+'…');
+/* A PDF as readable tabs: [{name, html}], long books split by chapter/section. Throws an Error with a message to show. */
+async function pdfTabs(file, onPage){
+  if(file.size>60*1024*1024) throw new Error('That PDF is over 60 MB. Try a smaller file.');
   let blocks;
   try{
     const lib=await loadPdfJs();
     const pdf=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
-    blocks=await pdfToBlocks(pdf,(i,n)=>{ if(i===1||i%10===0||i===n) toast('Reading page '+i+' of '+n+'…'); });
-  }catch(e){ toast('Couldn’t read that PDF. If it’s a scan, it has no text to import.'); return; }
-  if(!blocks.length){ toast('No text found in that PDF. Scanned pages can’t be imported as text.'); return; }
+    blocks=await pdfToBlocks(pdf,onPage||(()=>{}));
+  }catch(e){ throw new Error('Couldn’t read that PDF. If it’s a scan, it has no text to import.'); }
+  if(!blocks.length) throw new Error('No text found in that PDF. Scanned pages can’t be imported as text.');
   const sections=[]; let cur={head:null, html:[]};
   for(const b of blocks){
     if(b.k==='h'){ if(cur.html.length) sections.push(cur); cur={head:b.t, html:[]}; }
@@ -6173,19 +6264,28 @@ async function importPdf(file){
   }
   const base=cleanBaseName(file.name);
   const label=h=>{ const m=h && h.match(HEAD_NUM); return m ? {kw:m[1], n:m[2]} : null; };
+  return packs.map((p,i)=>{
+    const ls=p.heads.map(label).filter(Boolean); const a=ls[0], z=ls[ls.length-1];
+    const kw=a && (a.n!==z.n && /^no\.?$/i.test(a.kw) ? 'Nos.' : a.kw);
+    const name = packs.length===1 ? base : (a ? `${base} ${kw} ${a.n}${a.n!==z.n?'–'+z.n:''}` : `${base} (${i+1} of ${packs.length})`);
+    return {name:name.slice(0,60), html:p.html.join('<hr data-b="'+Math.random().toString(36).slice(2,8)+'">')};
+  });
+}
+async function importPdf(file){
+  if(!db){ toast('Importing needs a connection. Try again in a moment.'); return; }
+  toast('Opening '+file.name+'…');
+  let tabs;
+  try{ tabs=await pdfTabs(file,(i,n)=>{ if(i===1||i%10===0||i===n) toast('Reading page '+i+' of '+n+'…'); }); }
+  catch(e){ toast(e.message); return; }
   if(dirty) await save(false);
   const freshDoc=!curId; ensureDoc(); if(freshDoc && DOC_LOCK){ curKind='upload'; curEdit=false; applyLock(); }
   const made=[];
   try{
-    for(let i=0;i<packs.length;i++){
-      const p=packs[i]; const ls=p.heads.map(label).filter(Boolean); const a=ls[0], z=ls[ls.length-1];
-      const kw=a && (a.n!==z.n && /^no\.?$/i.test(a.kw) ? 'Nos.' : a.kw);
-      let name = packs.length===1 ? base : (a ? `${base} ${kw} ${a.n}${a.n!==z.n?'–'+z.n:''}` : `${base} (${i+1} of ${packs.length})`);
-      name=name.slice(0,60);
+    for(let i=0;i<tabs.length;i++){
       const id='t'+Date.now().toString(36)+i;
-      toast('Saving tab '+(i+1)+' of '+packs.length+'…');
-      await db.doc(bodyPath(curId,id)).set({html:p.html.join('<hr data-b="'+Math.random().toString(36).slice(2,8)+'">'), updated:Date.now()});
-      made.push({id,name});
+      toast('Saving tab '+(i+1)+' of '+tabs.length+'…');
+      await db.doc(bodyPath(curId,id)).set({html:tabs[i].html, updated:Date.now()});
+      made.push({id,name:tabs[i].name});
     }
     curTabs.push(...made); await writeMeta();
   }catch(e){
@@ -6194,6 +6294,65 @@ async function importPdf(file){
   }
   if(made.length){ renderTabs(); switchTab(made[0].id); toast('Imported '+file.name+' into '+made.length+' tab'+(made.length>1?'s':'')+'.'); }
 }
+
+/* ---------- Import many PDFs at once: each becomes its own document (not tabs in the open one). A picked folder keeps
+   its subfolders as folders; folders with the same name are reused, and a PDF whose document already exists in that
+   folder is skipped, so importing the same folder twice is safe. ---------- */
+async function bulkFolder(path){ /* ['LSAT'] or ['Books','Law'] -> folder id, creating as needed */
+  let parent=null;
+  for(const name of path){
+    let f=folders.find(x=>(x.name||'')===name && (x.parent||null)===parent);
+    if(!f){ const ref=await db.collection('folders').add(parent?{name, order:Date.now(), parent}:{name, order:Date.now()}); f={id:ref.id, name, parent}; folders.push(f); }
+    folderOpen[f.id]=true; parent=f.id;
+  }
+  return parent;
+}
+let bulkBusy=false;
+async function importPdfFiles(list, keepFolders){
+  if(!db){ toast('Importing needs a connection. Try again in a moment.'); return; }
+  if(bulkBusy){ toast('An import is already running.'); return; }
+  const files=[...list].filter(f=>/\.pdf$/i.test(f.name) || f.type==='application/pdf');
+  if(!files.length){ toast('No PDFs found there.'); return; }
+  bulkBusy=true; if(dirty) await save(false);
+  let done=0, skipped=0; const failed=[]; let firstId=null;
+  try{
+    for(let k=0;k<files.length;k++){
+      const f=files[k], title=f.name.replace(/\.pdf$/i,'').trim()||'Imported PDF';
+      const parts=keepFolders && f.webkitRelativePath ? f.webkitRelativePath.split('/').slice(1,-1) : [];
+      const folder=parts.length ? await bulkFolder(parts) : (keepFolders ? null : curFolder||null);
+      if(docsList.some(d=>(d.title||'')===title && (d.folder||null)===folder)){ skipped++; continue; }
+      const head='Importing '+(k+1)+' of '+files.length+': '+title;
+      toast(head+'…');
+      let tabs;
+      try{ tabs=await pdfTabs(f,(i,n)=>{ if(i%10===0||i===n) toast(head+' (page '+i+' of '+n+')'); }); }
+      catch(e){ failed.push(title+': '+e.message); continue; }
+      const id=db.collection('docs').doc().id, now=Date.now(), meta=[];
+      for(let i=0;i<tabs.length;i++){ const tid='t'+now.toString(36)+i; await db.doc('bodies/'+id+'_'+tid).set({html:tabs[i].html, updated:now}); meta.push({id:tid,name:tabs[i].name}); }
+      const snip=(()=>{ const x=document.createElement('div'); x.innerHTML=tabs[0].html; return x.textContent.replace(/\s+/g,' ').trim().slice(0,90); })();
+      await db.doc('docs/'+id).set({title:title.slice(0,120), snippet:snip, updated:Date.now(), tabs:meta, folder, kind:'upload'});
+      done++; if(!firstId) firstId=id;
+    }
+  }catch(e){ failed.push((e&&e.code==='quota_exceeded')?'Storage is full; the import stopped.':'The import stopped: '+(e&&e.message||e)); }
+  bulkBusy=false;
+  try{ localStorage.setItem('folderOpen', JSON.stringify(folderOpen)); }catch(e){}
+  renderList();
+  toast('Imported '+done+' PDF'+(done===1?'':'s')+(skipped?', skipped '+skipped+' already here':'')+(failed.length?', '+failed.length+' couldn’t be read':'')+'.');
+  if(failed.length) setTimeout(()=>alert('These PDFs weren’t imported:\n\n'+failed.join('\n')),400);
+}
+function importMenu(anchor){
+  if(openPop){ const same=openPop.dataset.for==='import'; closePop(); if(same) return; }
+  const m=document.createElement('div'); m.className='menu'; m.dataset.for='import'; m.style.minWidth='230px';
+  [['picture_as_pdf','PDFs… (choose several)',()=>$('#pdfMany').click()],['folder_open','A folder of PDFs…',()=>$('#pdfFolder').click()]].forEach(([ic,l,fn])=>{ const b=document.createElement('button'); b.innerHTML=`<span class="ms">${ic}</span><span>${l}</span>`; b.onclick=()=>{ closePop(); fn(); }; m.appendChild(b); });
+  place(m, anchor);
+}
+$('#importBtn').addEventListener('click',e=>{ e.stopPropagation(); importMenu(e.currentTarget); });
+$('#pdfMany').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; importPdfFiles(fs,false); });
+$('#pdfFolder').addEventListener('change',e=>{ const fs=[...e.target.files]; e.target.value=''; importPdfFiles(fs,true); });
+/* Drop PDFs (one or many) on the documents list. */
+(()=>{ const side=$('#sidebar'); const has=e=>e.dataTransfer && [...(e.dataTransfer.items||[])].some(i=>i.kind==='file');
+  side.addEventListener('dragover',e=>{ if(!has(e)) return; e.preventDefault(); side.classList.add('drop-pdf'); });
+  side.addEventListener('dragleave',e=>{ if(!side.contains(e.relatedTarget)) side.classList.remove('drop-pdf'); });
+  side.addEventListener('drop',e=>{ side.classList.remove('drop-pdf'); if(!has(e)) return; e.preventDefault(); importPdfFiles(e.dataTransfer.files,false); }); })();
 
 /* ---------- Ask Claude: a chat box (bottom right) that sends change requests to Claude.
    "Implement now" asks Claude to do it right away; plain "Send" queues it until you press "Go ahead". ---------- */
