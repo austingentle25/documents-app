@@ -182,7 +182,7 @@ body.reading.night .gpanel-head{border-bottom-color:#3a362f}
 .tsel:hover{background-color:var(--pill-hover)}
 .tsel:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .tsel::-ms-expand{display:none}
-#styleSel{width:118px} #fontSel{width:124px} #zoomSel{width:70px}
+#styleSel{width:118px} #fontSel{width:124px} #zoomSel{width:70px} #zoomSel:has(option[value="fit"]:checked){width:112px}
 @media (max-width:700px){#zoomSel,#zoomSel+.sep{display:none}}
 .size{flex:none;display:flex;align-items:center}
 #sizeInput{width:34px;height:24px;text-align:center;border:1px solid var(--ink-2);border-radius:4px;font:inherit;background:transparent;color:var(--ink);margin:0 2px;font-variant-numeric:tabular-nums}
@@ -782,7 +782,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
     <button class="tb" data-cmd="spell" title="Spell check"><span class="ms">spellcheck</span></button>
     <span class="sep"></span>
     <select class="tsel" id="zoomSel" title="Zoom" aria-label="Zoom">
-      <option value="fit">Fit</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="0.9">90%</option><option value="1">100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option>
+      <option value="fit">Fit to width</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="0.9">90%</option><option value="1">100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option>
     </select>
     <span class="sep"></span>
     <select class="tsel" id="styleSel" title="Styles" aria-label="Paragraph style">
@@ -970,7 +970,7 @@ $('#sizeUp').addEventListener('click', () => applySize(Number($('#sizeInput').va
 const FIT_CENTER=true;
 /* Writing mode opens at 100% instead of Fit; the zoom menu still offers Fit and other sizes for the session. */
 const ZOOM_100=true;
-let userZoom=ZOOM_100?1:'fit', curZoom=1; if(!FIT_CENTER){ try{ const z=localStorage.getItem('zoomPick'); if(z) userZoom = z==='fit' ? 'fit' : (Number(z)||'fit'); }catch(e){} }
+let userZoom=ZOOM_100?1:'fit', curZoom=1; { try{ const z=localStorage.getItem('zoomPick'); if(z) userZoom = z==='fit' ? 'fit' : (Number(z)||'fit'); }catch(e){} }
 /* Notes mode (writing mode only; called zoomMode in code): just the page, sized to the window. */
 let zoomMode=false; try{ zoomMode=localStorage.getItem('zoomMode')==='1'; }catch(e){}
 /* Full screen: hides the menus, toolbars, sidebar and tabs so only the page shows, at the normal size, still editable
@@ -1059,7 +1059,7 @@ function applyZoom(){
   wrap.style.zoom=curZoom;
   relayout();
 }
-if(ZOOM_100){ try{ const zs=document.getElementById('zoomSel'); if(zs && [...zs.options].some(o=>o.value==='1')) zs.value='1'; }catch(e){} }
+if(ZOOM_100){ try{ const zs=document.getElementById('zoomSel'); if(zs && [...zs.options].some(o=>o.value===String(userZoom))) zs.value=String(userZoom); }catch(e){} }
 function setZoom(v){ userZoom = v==='fit' ? 'fit' : (Number(v)||1); try{ localStorage.setItem('zoomPick', String(v)); }catch(e){} $('#zoomSel').value=String(v); if(zoomMode) setZoomMode(false); else applyZoom(); }
 $('#zoomSel').addEventListener('change', e => setZoom(e.target.value));
 try{ $('#fullBtn').addEventListener('click',()=>setFullDoc(true)); $('#fullExit').addEventListener('click',()=>setFullDoc(false));
@@ -2174,7 +2174,6 @@ function subscribeBody(){
   subscribeComments(); composerState=null; activeCid=null; renderRail();
   if(!curId || !curTab) return;
   const path=bodyPath(); let first=true;
-  doc.id='doc-'+String(curId).replace(/[^A-Za-z0-9_-]/g,'')+'-'+curTab;
   unsubBody = db.doc(path).onSnapshot(s=>{
     if(path!==bodyPath()) return;
     if(s.metadata.hasPendingWrites) return;
@@ -2922,7 +2921,9 @@ function askPdfBeforeLeaving(){
   p.querySelector('[data-no]').onclick=closePop;
   p.querySelector('[data-yes]').onclick=()=>{ closePop(); download('pdf'); };
 }
-document.addEventListener('mouseout', e=>{ if(!e.relatedTarget && e.clientY<=8) askPdfBeforeLeaving(); });
+/* PDF_NUDGE: off. Documents save to your account as you type, and the Data button reminds you about backups. */
+const PDF_NUDGE=false;
+if(PDF_NUDGE) document.addEventListener('mouseout', e=>{ if(!e.relatedTarget && e.clientY<=8) askPdfBeforeLeaving(); });
 async function download(kind){
   if(!downloadsApi){ toast('Downloads aren’t available in this view.'); return; }
   const t=slug(); let data, filename;
