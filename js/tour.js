@@ -1,11 +1,23 @@
-/* Walkthrough for new users, in three short parts that each start the first time you reach that place:
-   Home, a document, and reading mode. Each step spotlights one control and says what it's for. Skip ends that part;
-   "Take the tour" in the account menu replays the part for wherever you are. Progress is remembered per browser. */
+/* Walkthrough for new users, in three short parts: Home, a document, and reading mode. Each step spotlights one control
+   and says what it's for. It plays by itself only for a brand-new account (an empty library the first time the app
+   opens), each part once, and Skip turns it off for good. That's remembered in the account, so another device doesn't
+   replay it. Otherwise it plays only from "Take the tour" in the account menu, for wherever you are. */
 (function(){
 'use strict';
 const KEY='documents-app:tour';
-const done=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } };
-const mark=(part,v)=>{ const d=done(); if(v) d[part]=Date.now(); else delete d[part]; try{ localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){} };
+let state=null, ref=null; /* {auto, off, home, doc, read}: synced in the account at data/users/<id>/tour */
+const local=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ return null; } };
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} if(ref) ref.set(state).catch(()=>{}); }
+async function loadState(){
+  try{ const u=await window.claude.use('user'); const id=await u.id(); ref=window.documentsLocal.db.doc('data/users/'+id+'/tour'); const s=await ref.get(); if(s.exists) state=s.data(); }catch(e){}
+  if(!state) state=local();
+  if(!state){ /* first time here: plays by itself only if the library is empty, i.e. a new user */
+    let n=1; try{ n=(await window.documentsLocal.db.collection('docs').get()).size; }catch(e){}
+    state={auto:n===0, decided:Date.now()}; save();
+  }
+}
+const done=()=>state||{};
+const mark=(part,v)=>{ if(!state) state={}; if(v) state[part]=Date.now(); else delete state[part]; save(); };
 const isMac=/Mac|iP/.test(navigator.platform);
 
 const PARTS={
@@ -39,7 +51,7 @@ const PARTS={
 
 let active=null;
 function visible(sel){ if(!sel) return null; const el=document.querySelector(sel); if(!el) return null; const r=el.getBoundingClientRect(); return (r.width && r.height && getComputedStyle(el).visibility!=='hidden') ? el : null; }
-function stop(part,finished){ if(!active) return; active.ui.remove(); removeEventListener('resize',active.place); removeEventListener('scroll',active.place,true); removeEventListener('keydown',active.key,true); active=null; if(part) mark(part,true); }
+function stop(part,skipped){ if(!active) return; active.ui.remove(); removeEventListener('resize',active.place); removeEventListener('scroll',active.place,true); removeEventListener('keydown',active.key,true); active=null; if(part){ if(skipped && state) state.off=Date.now(); mark(part,true); } }
 function start(part){
   if(active) stop(null);
   const P=PARTS[part]; if(!P) return;
@@ -69,7 +81,7 @@ function start(part){
     ui.classList.toggle('dim',!visible(s.el));
     place(); card.querySelector('[data-next]').focus();
   };
-  const next=()=>{ if(i<steps.length-1){ i++; show(); } else stop(part,true); };
+  const next=()=>{ if(i<steps.length-1){ i++; show(); } else stop(part,false); };
   const back=()=>{ if(i>0){ i--; show(); } };
   const key=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); stop(part,true); } else if(e.key==='ArrowRight'||e.key==='Enter'){ e.preventDefault(); e.stopImmediatePropagation(); next(); } else if(e.key==='ArrowLeft'){ e.preventDefault(); e.stopImmediatePropagation(); back(); } };
   card.querySelector('[data-next]').onclick=next; card.querySelector('[data-back]').onclick=back; card.querySelector('[data-skip]').onclick=()=>stop(part,true);
@@ -79,10 +91,12 @@ function start(part){
 }
 /* Start a part the first time its place is reached, once nothing else (sign-in, a dialog) is in the way. */
 function current(){ return ['read','home','doc'].find(p=>PARTS[p].when()); }
+let loading=null;
 setInterval(()=>{
-  if(active || document.querySelector('.lr-gate,.lr-cc,.fbk-panel,.learn,.pop,.menu')) return;
+  if(active || document.querySelector('.lr-gate,.lr-cc,.fbk-panel,.learn,.pop,.menu') || !document.querySelector('.lr-btn')) return;
+  if(!state){ if(!loading && document.querySelector('.home,#doc,.page')) loading=loadState(); return; }
+  if(!state.auto || state.off) return;
   const p=current(); if(!p || done()[p]) return;
-  if(!document.querySelector('.lr-btn')) return;
   clearTimeout(window.__tourT); window.__tourT=setTimeout(()=>{ if(!active && current()===p && !done()[p]) start(p); },900);
 },1500);
 
@@ -99,5 +113,5 @@ css.textContent=`
 @media (prefers-reduced-motion:reduce){.tour-spot,.tour-card{transition:none}}`;
 document.head.appendChild(css);
 
-window.documentsTour={ start:()=>{ const p=current()||'home'; mark(p,false); start(p); }, reset:()=>{ try{ localStorage.removeItem(KEY); }catch(e){} } };
+window.documentsTour={ start:()=>{ start(current()||'home'); } };
 })();

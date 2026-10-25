@@ -2662,8 +2662,7 @@ function pickInitial(){
     titleEl.value=pending.title||'Untitled document'; doc.innerHTML=pending.html||'<p><br></p>';
     setHash(curId); renderTabs(); renderList(); subscribeBody(); dirty=true; setStatus('sync','Restoring unsaved changes…'); saveTimer=setTimeout(()=>save(false),1200);
   } else if(id && (has(hotState.docId) || has(hash))) openDoc(id,{force:true});
-  else if(docsList.length) showHome();
-  else { curTabs=DEFAULT_TABS(); curTab='t1'; renderTabs(); setStatus('edit_note','New document. It saves once you type.'); }
+  else { curTabs=DEFAULT_TABS(); curTab='t1'; renderTabs(); setStatus('edit_note','New document. It saves once you type.'); showHome(); }
 }
 
 /* ---------- Home: what you see on opening the app. Pick up where you left off, a recent document, or start something
@@ -6742,6 +6741,6 @@ addEventListener('beforeunload', ()=>{ if(dirty) stash(); });
 </script>
 
 <script src="js/feedback.js?v=4"></script>
-<script src="js/tour.js?v=2"></script>
+<script src="js/tour.js?v=3"></script>
 </body>
 </html>
