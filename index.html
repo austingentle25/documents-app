@@ -1833,7 +1833,15 @@ function pgLines(el, until){
   for(let i=0;i+1<lines.length;i++) lines[i].h=Math.max(lines[i].h, Math.min(lines[i].h*1.6, lines[i+1].top-lines[i].top));
   return {lines, pad};
 }
+/* Measure page breaks at 100%: under a zoomed page Safari reports positions differently from Chrome, which put breaks
+   in the wrong place. Zoom is set back before the next paint, so nothing flickers. */
 function paginate(){
+  const wrap=doc.closest('.page-wrap'), z=wrap && wrap.style.zoom;
+  if(!z || z==='1') return paginateNow();
+  wrap.style.zoom='1';
+  try{ return paginateNow(); } finally{ wrap.style.zoom=z; }
+}
+function paginateNow(){
   const want=pagesWanted();
   document.body.classList.toggle('paged', want);
   if(!want){ if(pgOn){ pgStyle.textContent=''; sheetsEl.remove(); doc.style.minHeight=''; pgOn=false; } return; }
