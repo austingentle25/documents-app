@@ -341,6 +341,19 @@ body.reading.night .page p.rn-src{border-bottom-color:rgba(255,255,255,.14)}
 /* Highlights use the standard highlighter yellow (older green ones included). */
 .page span[data-hl],.page ul.rn-marks li[data-k="hl"]>span{background-color:rgb(255,255,0)!important}
 .page ol ol{list-style-type:lower-alpha}.page ol ol ol{list-style-type:lower-roman}
+/* Numbering styles picked from the toolbar (data-ls on the list). */
+@counter-style ls-paren-dec{system:extends decimal;suffix:") "}
+@counter-style ls-paren-alpha{system:extends lower-alpha;prefix:"(";suffix:") "}
+.tb-dd{width:18px!important;margin-left:-6px}.tb-dd .ms{font-size:18px}
+.page ol[data-ls="1."]{list-style-type:decimal}.page ol[data-ls="1)"]{list-style-type:ls-paren-dec}
+.page ol[data-ls="a."]{list-style-type:lower-alpha}.page ol[data-ls="A."]{list-style-type:upper-alpha}
+.page ol[data-ls="(a)"]{list-style-type:ls-paren-alpha}
+.page ol[data-ls="i."]{list-style-type:lower-roman}.page ol[data-ls="I."]{list-style-type:upper-roman}
+.page ol[data-ls="1a"]{list-style-type:decimal;counter-reset:ls1}.page ol[data-ls="1a"]>li{counter-increment:ls1}
+.page ol[data-ls="1a"] li>ol{list-style:none;counter-reset:ls1b}.page ol[data-ls="1a"] li>ol>li{counter-increment:ls1b;position:relative}
+.page ol[data-ls="1a"] li>ol>li::before{content:counter(ls1) counter(ls1b,lower-alpha) ".";position:absolute;right:100%;margin-right:.45em;white-space:nowrap}
+.page ol[data-ls="1.1"],.page ol[data-ls="1.1"] ol{list-style:none;counter-reset:lsl}.page ol[data-ls="1.1"] li{counter-increment:lsl;position:relative}
+.page ol[data-ls="1.1"] li::before{content:counters(lsl,".") ".";position:absolute;right:100%;margin-right:.45em;white-space:nowrap}
 .page ul ul{list-style-type:circle}.page ul ul ul{list-style-type:square}
 .page li>p{margin:0}
 .page p.rn-sec{margin:12pt 0 1pt}
@@ -816,7 +829,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
     <button class="tb" id="spacingBtn" title="Line &amp; paragraph spacing"><span class="ms">format_line_spacing</span></button>
     <span class="sep"></span>
     <button class="tb" data-cmd="insertUnorderedList" title="Bulleted list (Ctrl+Shift+8)"><span class="ms">format_list_bulleted</span></button>
-    <button class="tb" data-cmd="insertOrderedList" title="Numbered list (Ctrl+Shift+7)"><span class="ms">format_list_numbered</span></button>
+    <button class="tb" data-cmd="insertOrderedList" title="Numbered list (Ctrl+Shift+7)"><span class="ms">format_list_numbered</span></button><button class="tb tb-dd" id="olStyleBtn" title="Numbering style: 1. a. A. i. 1a. 1.1 …" aria-label="Numbering style"><span class="ms">arrow_drop_down</span></button>
     <button class="tb" data-cmd="outdent" title="Decrease indent (Ctrl+[)"><span class="ms">format_indent_decrease</span></button>
     <button class="tb" data-cmd="indent" title="Increase indent (Ctrl+])"><span class="ms">format_indent_increase</span></button>
     <button class="tb" data-cmd="removeFormat" title="Clear formatting (Ctrl+\)"><span class="ms">format_clear</span></button>
@@ -1487,6 +1500,8 @@ doc.addEventListener('input', e=>{
   /* Letter lists: "A. ", "a. ", "B) ", "c) " count in letters from the letter typed. */
   const am=!nm && pre.match(/^([A-Za-z])([.)]) $/);
   if(am){ const up=am[1]===am[1].toUpperCase(); nm=[am[0], '', String(am[1].toUpperCase().charCodeAt(0)-64), am[2]]; nm.alpha=(up?'A':'a'); }
+  const pvL=b.previousElementSibling, roman=am && /^[iI]$/.test(am[1]) && am[2]==='.' && !(pvL && pvL.tagName==='OL' && /^@/.test(listFmt(pvL)));
+  if(roman){ nm=[am[0],'','1','.']; }
   if(!nm && !bul) return;
   const num=nm ? [nm[0], nm[2]] : null;
   const fmt=nm ? (nm.alpha ? '@'+nm.alpha+nm[3] : (nm[1] || nm[3]===')') ? nm[1].replace(/^p$/,'P')+nm[3] : '') : '';
@@ -1498,7 +1513,7 @@ doc.addEventListener('input', e=>{
   const c=document.createRange(); c.setStart(b,0); c.collapse(true); s.removeAllRanges(); s.addRange(c); savedRange=c.cloneRange();
   toggleList(num ? 'OL' : 'UL', fmt ? 'plist' : '', fmt, noJoin, num ? +num[1] : 0);
   const li=liOf(getSelection().anchorNode);
-  if(li){ if(num && +num[1]!==1 && !li.previousElementSibling) li.parentNode.setAttribute('start', num[1]); caretAt(li, true); }
+  if(li){ if(num && +num[1]!==1 && !li.previousElementSibling) li.parentNode.setAttribute('start', num[1]); if(roman && !li.previousElementSibling) li.parentNode.dataset.ls=am[1]==='I'?'I.':'i.'; caretAt(li, true); }
   ensureIds(); changed(); updateToolbar();
   const u=listUndo[listUndo.length-1]; if(u){ u.before=typed.html; u.off=typed.off; u.after=doc.innerHTML; }
 });
@@ -1577,6 +1592,27 @@ doc.addEventListener('input', e=>{
 });
 /* Indent a whole list at once, like Google Docs: click a bullet or number to pick every item in that list,
    then Tab / Shift+Tab, Ctrl+] / Ctrl+[ or the indent buttons move all of them together. Any other click or key lets go. */
+/* Numbering style for the list at the cursor (or a new numbered list): 1. 1) a. A. (a) i. I., and two outline styles:
+   1a. (sub-items under 1 read 1a, 1b) and 1.1 (1.1, 1.1.1). 1a and 1.1 apply to the whole outline from its top list. */
+const LIST_STYLES=[['1.','1. 2. 3.'],['1)','1) 2) 3)'],['a.','a. b. c.'],['A.','A. B. C.'],['(a)','(a) (b) (c)'],['i.','i. ii. iii.'],['I.','I. II. III.'],['1a','1. → 1a. 1b.'],['1.1','1.1 → 1.1.1']];
+function setListStyle(ls){
+  if(readOnly) return; liveSel(); restore();
+  let li=liOf(getSelection().anchorNode);
+  if(!li || li.parentNode.tagName!=='OL'){ toggleList('OL'); li=liOf(getSelection().anchorNode); if(!li) return; }
+  const before=listSnap();
+  let ol=li.parentNode;
+  if(ls==='1a'||ls==='1.1'){ while(ol.parentNode!==doc && ol.parentNode.closest && ol.parentNode.closest('ol')) ol=ol.parentNode.closest('ol'); }
+  ol.classList.remove('plist','la','ua'); delete ol.dataset.fmt; ol.style.removeProperty('--lp'); ol.style.removeProperty('--ld'); if(!ol.getAttribute('style')) ol.removeAttribute('style'); if(!ol.className) ol.removeAttribute('class');
+  ol.dataset.ls=ls;
+  listDone(before, li, false);
+}
+function listStyleMenu(anchor){
+  if(openPop){ const same=openPop.dataset.for==='olstyle'; closePop(); if(same) return; }
+  const li=liOf((savedRange||{}).startContainer||getSelection().anchorNode); const cur=li && li.parentNode.tagName==='OL' ? (li.parentNode.dataset.ls||(li.closest('ol[data-ls]')||{dataset:{}}).dataset.ls) : null;
+  const m=document.createElement('div'); m.className='menu'; m.dataset.for='olstyle'; m.style.minWidth='190px';
+  LIST_STYLES.forEach(([k,l])=>{ const b=document.createElement('button'); b.innerHTML='<span class="ms">'+(k===cur?'check':'')+'</span><span></span>'; b.querySelector('span:last-child').textContent=l; b.onmousedown=e=>e.preventDefault(); b.onclick=()=>{ closePop(); setListStyle(k); }; m.appendChild(b); });
+  place(m, anchor);
+}
 let listPick=null, listPickBox=null;
 const LP_STEP=18, LP_MIN=-27, LP_MAX=270; // points
 function listPickDraw(){
@@ -1766,7 +1802,9 @@ function pgSel(el){
 }
 function pgUnits(){
   const out=[];
-  const walk=list=>{ for(const li of list.children){ if(li.tagName!=='LI') continue; const sub=[...li.children].find(c=>/^(UL|OL)$/.test(c.tagName)); out.push({el:li, until:sub||null, pad:true}); if(sub) [...li.children].filter(c=>/^(UL|OL)$/.test(c.tagName)).forEach(walk); } };
+  /* A list can hold a list directly (<ol><ol><li>, made by older indenting and by pasting) or a stray block; those are
+     walked or measured too, so their lines get moved to the next sheet like any other. */
+  const walk=list=>{ for(const li of list.children){ if(/^(UL|OL)$/.test(li.tagName)){ walk(li); continue; } if(li.tagName!=='LI'){ out.push({el:li, until:null, pad:true}); continue; } const sub=[...li.children].find(c=>/^(UL|OL)$/.test(c.tagName)); out.push({el:li, until:sub||null, pad:true}); if(sub) [...li.children].filter(c=>/^(UL|OL)$/.test(c.tagName)).forEach(walk); } };
   for(const b of doc.children){
     if(/^(UL|OL)$/.test(b.tagName)) walk(b);
     else out.push({el:b, until:null, pad:!/^(HR|TABLE)$/.test(b.tagName)});
@@ -2768,6 +2806,8 @@ function showHome(){
   setTimeout(()=>{ if(homeEl && matchMedia('(hover:hover)').matches) inp.focus(); },50);
 }
 $('#folderSortBtn').addEventListener('click',toggleFolderSort);
+$('#olStyleBtn').addEventListener('mousedown',e=>{ e.preventDefault(); liveSel(); });
+$('#olStyleBtn').addEventListener('click',e=>{ e.stopPropagation(); listStyleMenu(e.currentTarget); });
 /* Word count for the open tab, beside the save status; with text selected it shows that part too. */
 (()=>{ const wc=$('#wordCount'); let t=null;
   const words=s=>(s.match(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)||[]).length;
