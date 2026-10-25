@@ -42,6 +42,8 @@ body.reading.night .rd-modeseg{background:#25231f;border-color:#3a362f}body.read
 .title-row{display:flex;align-items:center;gap:8px;min-width:0}
 #docTitle{font:400 18px/24px var(--ui);color:var(--ink);border:1px solid transparent;border-radius:4px;padding:0 6px;background:transparent;min-width:0;max-width:100%;field-sizing:content}
 #docTitle:hover{border-color:var(--line)}
+.wc{margin-left:10px;font-size:12px;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}.wc:empty{display:none}
+@media (max-width:700px){.wc{display:none}}
 #docTitle:focus{outline:none;border-color:var(--accent)}
 #status{color:var(--ink-2);font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:4px}
 #status .ms{font-size:16px;width:16px}
@@ -225,6 +227,8 @@ body.reading.night .toc-item{color:#a79f92}
 .confirm button{border:0;border-radius:12px;padding:3px 10px;cursor:pointer;font-size:12px}
 .confirm .yes{background:#b3261e;color:#fff}.confirm .no{background:var(--pill-hover)}
 .side-btns{display:flex;align-items:center;gap:4px}
+#sidebar,#scrim{display:none!important}
+body.home-drop .home{outline:2px dashed var(--accent);outline-offset:-10px;background:var(--active)}
 .side-home{border:0;background:none;padding:4px 6px;margin-left:-6px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:pointer;font:inherit;color:inherit}.side-home:hover{background:var(--pill-hover)}.side-home .ms{font-size:18px}
 body.at-home #sidebar,body.at-home #sideToggle,body.at-home #scrim,body.at-home #canvas,body.at-home .toolbar-wrap,body.at-home .title-row,body.at-home .menubar,body.at-home .top-actions,body.at-home .rd-modeseg,body.at-home .q-fab,body.at-home .qn-fab{display:none!important}
 .home{flex:1;min-width:0;overflow:auto;background:var(--canvas)}
@@ -250,7 +254,8 @@ body.at-home #sidebar,body.at-home #sideToggle,body.at-home #scrim,body.at-home 
 .hf-h{display:flex;align-items:center;gap:8px;padding:2px 8px 6px}.hf-h>.ms{color:#5f6368;font-size:20px}.hf-sub .hf-h>.ms{font-size:17px}
 .hf-n{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hf-c{font-size:12px;color:var(--ink-2);background:var(--pill);border-radius:10px;padding:1px 8px}
 .hf-add{border:0;background:none;color:var(--ink-2);border-radius:50%;width:28px;height:28px;display:grid;place-items:center;cursor:pointer;opacity:.6}.hf-add:hover{background:var(--pill-hover);opacity:1}.hf-add .ms{font-size:18px}
-.hf-doc{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:6px 8px;border-radius:8px;cursor:pointer;font:inherit;color:inherit}
+.hf-dm{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;opacity:0;color:var(--ink-2)}.hf-dm .ms{font-size:18px!important;color:var(--ink-2)!important}.hf-doc:hover .hf-dm,.hf-dm:focus{opacity:1}.hf-dm:hover{background:var(--pill-hover)}@media (hover:none){.hf-dm{opacity:.7}}
+.hf-doc{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:6px 8px;border-radius:8px;cursor:pointer;font:inherit;color:inherit}
 .hf-doc:hover{background:var(--active)}.hf-doc .ms{font-size:18px;color:var(--doc-icon)}.hf-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hf-w{font-size:12px;color:var(--ink-2);white-space:nowrap}
 .hf-more{border:0;background:none;color:var(--accent);font:500 13px var(--ui);padding:6px 8px;cursor:pointer}.hf-empty{margin:2px 8px;color:var(--ink-2);font-size:13px}
 .hl{width:100%;border-collapse:collapse;background:var(--page);border:1px solid #dadce0;border-radius:12px;overflow:hidden}
@@ -735,7 +740,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
 /*SPEED-CSS-END*/
 </style>
 <script src="js/config.js?v=4"></script>
-<script src="js/local-runtime.js?v=8"></script>
+<script src="js/local-runtime.js?v=9"></script>
 <script src="js/claude-connect.js?v=1"></script>
 </head>
 <body>
@@ -747,7 +752,7 @@ body.night .spd-ctl .spd-sleep.on{border-color:#5f7fbf;color:#cfe0ff}
   <div class="titles">
     <div class="title-row">
       <input id="docTitle" value="Untitled document" aria-label="Document title" spellcheck="false">
-      <span id="status" aria-live="polite"><span class="ms">cloud_done</span><span id="statusText">Saved</span></span><button type="button" class="lock-pill" id="lockPill" hidden></button>
+      <span id="status" aria-live="polite"><span class="ms">cloud_done</span><span id="statusText">Saved</span></span><span id="wordCount" class="wc" title="Word count (select text to count part of it)"></span><button type="button" class="lock-pill" id="lockPill" hidden></button>
     </div>
     <nav class="menubar" aria-label="Menus">
       <button data-menu="file">File</button>
@@ -2370,7 +2375,7 @@ async function deleteDoc(id){
   const tabs=(meta && meta.tabs && meta.tabs.length) ? meta.tabs : DEFAULT_TABS();
   try{ for(const t of tabs) await db.doc(bodyPath(id,t.id)).delete(); await db.doc('docs/'+id).delete(); }
   catch(e){ toast('Couldn’t delete that document. Try again.'); return; }
-  if(id===curId){ const next=docsList.find(d=>d.id!==id); if(next) openDoc(next.id,{force:true}); else newDoc(); }
+  if(id===curId){ if(docsList.some(d=>d.id!==id)) showHome(); else newDoc(); }
   toast('Document deleted');
 }
 
@@ -2688,8 +2693,9 @@ function showHome(){
     b.querySelector('.hc-s').textContent=d.snippet||'';
     b.onclick=()=>open(d.id); return b; };
   const row=d=>{ const b=document.createElement('button'); b.type='button'; b.className='hf-doc';
-    b.innerHTML='<span class="ms">'+icon(d)+'</span><span class="hf-t"></span><span class="hf-w"></span>';
+    b.innerHTML='<span class="ms">'+icon(d)+'</span><span class="hf-t"></span><span class="hf-w"></span><span class="hf-dm" role="button" tabindex="0" title="Move or delete" aria-label="Document options"><span class="ms">more_horiz</span></span>';
     b.querySelector('.hf-t').textContent=d.title||'Untitled document'; b.querySelector('.hf-w').textContent=when(d.updated).replace(/^Edited /,'');
+    b.querySelector('.hf-dm').onclick=e=>{ e.stopPropagation(); homeDocMenu(e.currentTarget,d); };
     b.onclick=()=>open(d.id); return b; };
   let last=null; try{ last=localStorage.getItem('lastDoc'); }catch(e){}
   const lastDoc=docsList.find(d=>d.id===last);
@@ -2706,9 +2712,10 @@ function showHome(){
     if(q && !shown.length && !sub.length && !nameHit) return null;
     const box=document.createElement('div'); box.className=depth?'hf hf-sub':'hf';
     const total=docs.filter(d=>{ let id=d.folder; for(let k=0;id&&k<8;k++){ if(id===f.id) return true; const x=folders.find(y=>y.id===id); id=x&&x.parent; } return false; }).length;
-    box.innerHTML='<div class="hf-h"><span class="ms">'+(depth?'subdirectory_arrow_right':'folder')+'</span><span class="hf-n"></span><span class="hf-c">'+total+'</span><button class="hf-add" title="New document in this folder" aria-label="New document in this folder"><span class="ms">add</span></button></div><div class="hf-list"></div>';
+    box.innerHTML='<div class="hf-h"><span class="ms">'+(depth?'subdirectory_arrow_right':'folder')+'</span><span class="hf-n"></span><span class="hf-c">'+total+'</span><button class="hf-add" title="New document in this folder" aria-label="New document in this folder"><span class="ms">add</span></button><button class="hf-add hf-more-btn" title="Folder options" aria-label="Folder options"><span class="ms">more_horiz</span></button></div><div class="hf-list"></div>';
     box.querySelector('.hf-n').textContent=f.name;
     box.querySelector('.hf-add').onclick=()=>newDocIn(f.id);
+    box.querySelector('.hf-more-btn').onclick=e=>homeFolderMenu(e.currentTarget,f);
     const list=box.querySelector('.hf-list'), LIM=q?999:6;
     shown.slice(0,LIM).forEach(d=>list.appendChild(row(d)));
     if(shown.length>LIM){ const more=document.createElement('button'); more.type='button'; more.className='hf-more'; more.textContent='Show all '+shown.length;
@@ -2763,6 +2770,41 @@ function showHome(){
   setTimeout(()=>{ if(homeEl && matchMedia('(hover:hover)').matches) inp.focus(); },50);
 }
 $('#folderSortBtn').addEventListener('click',toggleFolderSort);
+/* Word count for the open tab, beside the save status; with text selected it shows that part too. */
+(()=>{ const wc=$('#wordCount'); let t=null;
+  const words=s=>(s.match(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)||[]).length;
+  const update=()=>{ t=null; const all=words(doc.innerText||''); const sel=getSelection(); let part=0;
+    if(sel && sel.rangeCount && !sel.isCollapsed && doc.contains(sel.anchorNode)) part=words(sel.toString());
+    wc.textContent=(part?part.toLocaleString()+' of ':'')+all.toLocaleString()+' word'+(all===1?'':'s'); };
+  const soon=()=>{ if(!t) t=setTimeout(update,250); };
+  new MutationObserver(soon).observe(doc,{childList:true,subtree:true,characterData:true});
+  document.addEventListener('selectionchange',soon); update(); })();
+function homeFolderMenu(anchor,f){
+  closePop();
+  const m=document.createElement('div'); m.className='menu'; m.style.minWidth='210px';
+  [['note_add','New document here',()=>newDocIn(f.id)],
+   ['create_new_folder','New folder inside',()=>{ const n=prompt('Name for the new folder inside “'+f.name+'”'); if(n&&n.trim()) createFolder(n,f.id); }],
+   ['edit','Rename',()=>{ const n=prompt('Rename folder',f.name); if(n&&n.trim()) renameFolder(f.id,n); }],
+   ['delete','Delete folder',()=>confirmDeleteFolder(anchor,f)]]
+  .forEach(([ic,l,fn])=>{ const b=document.createElement('button'); b.innerHTML=`<span class="ms">${ic}</span><span>${l}</span>`; b.onclick=()=>{ closePop(); fn(); }; m.appendChild(b); });
+  place(m, anchor);
+}
+function homeDocMenu(anchor,d){
+  closePop();
+  const m=document.createElement('div'); m.className='menu'; m.style.minWidth='200px';
+  [['drive_file_move','Move to folder…',()=>moveMenu(anchor,d.id)],
+   ['delete','Delete…',()=>{ const p=document.createElement('div'); p.className='pop'; p.style.width='300px';
+      p.innerHTML='<h3></h3><p style="margin:0;color:var(--ink-2);line-height:1.45">All of its tabs are deleted for good. This can’t be undone.</p><div class="pop-row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" data-no>Cancel</button><button class="btn" data-yes style="background:#b3261e">Delete</button></div>';
+      p.querySelector('h3').textContent='Delete “'+(d.title||'Untitled document')+'”?';
+      p.querySelector('[data-no]').onclick=closePop; p.querySelector('[data-yes]').onclick=()=>{ closePop(); deleteDoc(d.id); };
+      place(p,anchor); }]]
+  .forEach(([ic,l,fn])=>{ const b=document.createElement('button'); b.innerHTML=`<span class="ms">${ic}</span><span>${l}</span>`; b.onclick=()=>{ closePop(); setTimeout(fn,0); }; m.appendChild(b); });
+  place(m, anchor);
+}
+(()=>{ const has=e=>e.dataTransfer && [...(e.dataTransfer.items||[])].some(i=>i.kind==='file');
+  addEventListener('dragover',e=>{ if(!homeEl || !has(e)) return; e.preventDefault(); document.body.classList.add('home-drop'); });
+  addEventListener('dragleave',e=>{ if(!e.relatedTarget) document.body.classList.remove('home-drop'); });
+  addEventListener('drop',e=>{ document.body.classList.remove('home-drop'); if(!homeEl || !has(e)) return; e.preventDefault(); importPdfFiles(e.dataTransfer.files,false); }); })();
 $('#homeBtn').addEventListener('click',()=>{ if(dirty) save(false); showHome(); });
 
 /* ---------- sidebar toggle ---------- */
@@ -2772,7 +2814,9 @@ function toggleSide(show){
   $('#scrim').hidden = !(open && innerWidth<=900);
   if(innerWidth>900){ try{ localStorage.setItem('sideOpen', open?'1':'0'); }catch(e){} }
 }
-$('#sideToggle').addEventListener('click',()=>toggleSide());
+/* Home replaced the sidebar as the place to find documents, so the top-left button goes Home. */
+$('#sideToggle').addEventListener('click',()=>{ if(dirty) save(false); showHome(); });
+$('#sideToggle').title='Home: all your documents'; $('#sideToggle').setAttribute('aria-label','Home'); $('#sideToggle').querySelector('.ms').textContent='home';
 $('#scrim').addEventListener('click',()=>toggleSide(false));
 (()=>{ let pref='1'; try{ pref=localStorage.getItem('sideOpen')||'1'; }catch(e){} if(innerWidth<=900 || pref==='0') $('#sidebar').classList.add('closed'); })();
 renderTabs();
@@ -6698,5 +6742,6 @@ addEventListener('beforeunload', ()=>{ if(dirty) stash(); });
 </script>
 
 <script src="js/feedback.js?v=4"></script>
+<script src="js/tour.js?v=2"></script>
 </body>
 </html>
