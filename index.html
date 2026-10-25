@@ -3272,7 +3272,8 @@ function showReading(opts){
   const pct=total ? Math.round(done/total*100) : 0;
   if(!jump || (opts&&opts.mark&&POS_MARK)){ homePos={b:rPos.b, s:rPos.s}; queueSavePos(u, pct); }
   setTimeout(updateReturnBtn, 450);
-  $('#readProgFill').style.width=pct+'%'; $('#readProg').setAttribute('aria-valuenow',String(pct)); $('#rbPct').textContent=pct+'%'; $('#readProgPct').textContent=pct+'% read';
+  const pctTxt=PCT_DEC ? (total ? Math.min(100, done/total*100) : 0).toFixed(2) : String(pct);
+  $('#readProgFill').style.width=pct+'%'; $('#readProg').setAttribute('aria-valuenow',String(pct)); $('#rbPct').textContent=pctTxt+'%'; $('#readProgPct').textContent=pctTxt+'% read';
   const paras=units.filter(x=>x.el.parentNode===doc).length;
   const pi=units.slice(0,rPos.b+1).filter(x=>x.el.parentNode===doc).length;
   pos.textContent=u.el.tagName==='TR' ? 'Table row '+u.row+' of '+u.rows+(u.cover?(rPos.s===0?' · answer hidden':' · answer shown'):'') : (u.el.tagName==='LI'||u.el.tagName==='TD'||u.el.tagName==='TH' ? 'List item' : 'Paragraph '+pi+' of '+paras)+' · Sentence '+(rPos.s+1)+' of '+u.sents.length;
@@ -4663,6 +4664,8 @@ $('#rbSpeed').addEventListener('click', ()=>spd?spdClose():spdOpen());
 /* Read aloud in the speed reader: a neural voice (Kokoro, open source) that runs on this device. The word highlight
    follows the audio. Model files are published with this page under voice/. */
 const V={tts:null, loading:null, ctx:null, src:null, cache:new Map(), run:0, voices:[], pct:0};
+/* PCT_DEC: Reading mode shows progress to two decimals (e.g. 62.86%). */
+const PCT_DEC=true;
 const V_MIN=0.8, V_MAX=1.2; /* above 1.2× this voice starts to sound choppy */
 function vRate(){ let r=1; try{ r=+localStorage.getItem('spVoiceRate2')||1; }catch(e){} return Math.min(V_MAX,Math.max(V_MIN,r)); }
 function vSetRate(r){ r=Math.min(V_MAX,Math.max(V_MIN,Math.round(r*10)/10)); try{ localStorage.setItem('spVoiceRate2',String(r)); }catch(e){} V.cache.clear(); vBtn(); if(spd){ spdShow(); if(spd.playing&&spd.voice){ const [a]=vSentence(spd.words,spd.i); spdPlay(false); spd.i=a; spdPlay(true); } } }
@@ -4835,8 +4838,19 @@ const V_SAY=[[/\b([Nn])ativ(ism|isms|ist|ists|istic)\b/g,(m,n,e)=>(n==='N'?'N':'
   [/\b([Rr])efin(er|ers|ery|eries)\b/g,(m,r,e)=>(r==='R'?'R':'r')+'ifyn'+e]];
 const SAY_MICHELIN=true;
 if(SAY_MICHELIN) V_SAY.push([/\bMichelin\b/g,'Mishlin'],[/\bMICHELIN\b/g,'Mishlin']);
+/* Initialisms said letter by letter ("USPS" → "U-S-P-S"); acronyms said as words are left alone. */
+const SAY_ACRO=true;
+const V_ACRO_WORDS=new Set('NASA NATO FEMA OPEC UNESCO UNICEF COVID NAFTA ASEAN AIDS SCOTUS POTUS FLOTUS LSAT ICE SALT START DACA OSHA HIPAA CERN NOAA SWAT RICO NIMBY YIMBY WASP IKEA GIF JPEG PIN RAM ROM SIM CAPTCHA PAC LIDAR RADAR SONAR LASER SUNY CUNY FAFSA CRISPR MOMA LACMA HUD MAGA WIC JAMA IMAX SARS MERS GOAT TIME NOW CARES CHIPS SNAP TANF WIN SPAC ESOP'.split(' '));
+const V_CAPS_COMMON=new Set('A I OK THE AND BUT OR NOR OF TO IN ON AT BY FOR IS IT ITS NOT NO YES WE HE SHE YOU THEY ME MY OUR NEW ALL ONE TWO WHO WHY HOW WHAT BIG TOP'.split(' '));
+function vAcroSpeak(t){
+  const L=t.replace(/[^A-Za-z]/g,''); if(L.length>12 && L.replace(/[^A-Z]/g,'').length/L.length>0.6) return t; /* an all-caps heading: leave it */
+  return t.replace(/\b([A-Z]{2,6})(s\b|['’]s\b)?(?![A-Za-z])/g,(m,w,suf)=>{
+    if(V_ACRO_WORDS.has(w)||V_CAPS_COMMON.has(w)||/^[IVX]+$/.test(w)) return m;
+    return w.split('').map((c,i)=>c==='A'&&i>0?'eigh':c).join('-')+(suf? "'s" : '');
+  }); }
 function vSpeakable(t){
   if(SAY_FIX) V_SAY.forEach(([re,to])=>{ t=t.replace(re,to); });
+  if(SAY_ACRO) t=vAcroSpeak(t);
   t=t.replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/\s*[—–]\s*/g,' ').replace(/…/g,'...');
   if(!ABBR_ON) return t.replace(/\bMr\./g,'Mister').replace(/\bMrs\./g,'Missus').replace(/\bDr\./g,'Doctor').replace(/&/g,' and ').replace(/\s+/g,' ').trim();
   if(SPEAK_ABBR){ t=vMoneySpeak(t); t=vStatesSpeak(t); V_ABBR2.forEach(([re,to])=>{ t=t.replace(re,to); }); }
@@ -4847,6 +4861,10 @@ function vTrim(a){ const d=a.data, r=a.rate, th=0.012; let s=0, e=d.length-1;
   while(s<d.length && Math.abs(d[s])<th) s++; while(e>s && Math.abs(d[e])<th) e--;
   s=Math.max(0,s-Math.round(r*0.03)); e=Math.min(d.length,e+Math.round(r*0.09));
   return e-s>r*0.1?{data:d.slice(s,e),rate:r}:a; }
+/* PACE_LOG: notes in the voice log when a sentence comes out much faster than speech (normal is 0.05–0.07 s per letter). */
+const PACE_LOG=true;
+function vPaceCheck(text,a){ if(text.length<20 || !a || !a.data || !a.rate) return; const pace=a.data.length/a.rate*vRate()/text.length;
+  if(pace<0.035) vLog('A sentence came out too fast ('+pace.toFixed(3)+' s per letter; normal is about 0.05–0.07)'); }
 /* One request per sentence: prepared audio is used first; a sentence already being made (by playback or by preparing)
    is shared rather than made twice, and is moved to the front of the line when playback needs it. */
 function vKey(text){ return vVoice()+'|'+vRate()+'|'+text; }
@@ -4854,7 +4872,7 @@ function vSynth(text,prio){ text=vSpeakable(text); const key=vKey(text);
   if(V.prep && V.prep.has(key)){ const q=V.prep.get(key); const f=new Float32Array(q.data.length); for(let k=0;k<f.length;k++) f[k]=q.data[k]/32767; return Promise.resolve({data:f,rate:q.rate}); }
   if(V.cache.has(key)){ if(!prio && V.bump) V.bump(key); return V.cache.get(key); }
   if(svKeys.has(key)){ const p=svGet(key).then(q=>{ if(!q) throw new Error('saved audio missing'); const f=new Float32Array(q.data.length); for(let k=0;k<f.length;k++) f[k]=q.data[k]/32767; return {data:f,rate:q.rate}; }).catch(()=>{ svKeys.delete(key); V.cache.delete(key); return vSynth(text,prio); }); V.cache.set(key,p); return p; }
-  const p=vLoad().then(t=>t.generate(text,{voice:vVoice(),speed:vRate(),prio:prio||0,key})).then(vTrim);
+  const p=vLoad().then(t=>t.generate(text,{voice:vVoice(),speed:vRate(),prio:prio||0,key})).then(vTrim).then(a=>{ if(PACE_LOG) vPaceCheck(text,a); return a; });
   p.catch(()=>V.cache.delete(key)); V.cache.set(key,p); if(V.cache.size>80) V.cache.delete(V.cache.keys().next().value); return p;
 }
 /* Ask for a sentence; if it fails, try once more before giving up. */
