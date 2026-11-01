@@ -28,7 +28,7 @@ const PARTS={
     {el:'.home-seg', title:'Three ways to browse', text:'Folders shows each folder with its documents. Recent shows what you worked on last. List is a table you can sort by name, folder or date.'},
     {el:'.home-find', title:'Find anything', text:'Search titles, text and folder names. Press Enter to open the first match.'},
     {el:'.hf .hf-more-btn', title:'Organize', text:'Each folder’s ⋯ menu adds a document or subfolder, renames, or deletes. A document’s ⋯ moves it to another folder.'},
-    {el:'.lr-btn', title:'Your account', text:'Shows whether everything is synced. From here: back up, restore, sign out, or Connect Claude to turn on the grammar check, definitions, summaries and replies to comments.'},
+    {el:'.lr-btn', title:'Your account', text:'Shows whether everything is synced. From here: back up, restore or sign out.'},
     {el:'.fbk-btn', title:'Tell us what to change', text:'Point at any part of the app and say what should be different. Notes collect here until you send them.'},
     {title:'That’s Home', text:'Open any document and the tour continues with writing and reading.'}]},
   doc:{ when:()=>!document.body.classList.contains('at-home') && !document.body.classList.contains('reading') && !document.querySelector('.home'), steps:[
@@ -36,11 +36,11 @@ const PARTS={
     {el:'#wordCount', title:'Word count', text:'Counts the words in this tab as you write. Select some text to count just that part.'},
     {el:'.toolbar', title:'Format', text:'Headings, fonts, bold and italics, highlights, lists and links, like any word processor.'},
     {el:'#tabstrip', title:'Tabs', text:'Split long work into tabs. The + adds a blank tab, imports a PDF into this document, or adds a web article.'},
-    {el:'#commentBtn', title:'Comments', text:'Select text and comment on it (or press '+(isMac?'⌘⌥M':'Ctrl+Alt+M')+'). With Claude connected, tick “Send to Claude” and the answer appears in the thread.'},
+    {el:'#commentBtn', title:'Comments', text:'Select text and comment on it (or press '+(isMac?'⌘⌥M':'Ctrl+Alt+M')+').'},
     {el:'#readBtn', title:'Reading mode', text:'A calm page for reading: one sentence highlighted at a time, notes after each paragraph, and Listen to hear it read aloud.'},
     {el:'#sideToggle', title:'Back to Home', text:'Returns to all your documents.'}]},
   read:{ when:()=>document.body.classList.contains('reading') && !document.querySelector('.spd:not([hidden])'), steps:[
-    {el:'#rdModeSeg', title:'Two ways to read', text:'Academic gives you a notes box after each paragraph and reads one sentence per →. Light reads straight through with one summary at the end.'},
+    {el:'#rdModeSeg', title:'Two ways to read', text:'Academic gives you a notes box after each paragraph and reads one sentence per →. Light reads straight through.'},
     {el:'#readBar', title:'Reading controls', text:'← and → move a sentence at a time. Aa changes text size and night mode. ⋯ has more.'},
     {el:'#rbListen', title:'Listen', text:'Reads aloud with each word highlighted. The voice runs on your device; the first time, it downloads (about 110 MB), then it’s instant.'},
     {el:'#rdSpdTop', title:'Guided reading', text:'A speed reader that starts at 400 words a minute and gently speeds up. Press S any time.'},
